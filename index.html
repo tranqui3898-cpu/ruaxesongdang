@@ -156,12 +156,25 @@
         renderTable();
     }
 
-    // Hàm xóa xe (nếu nhập nhầm)
+    // Hàm xóa xe (có yêu cầu mật khẩu)
     function deleteLog(index) {
-        if(confirm('Bạn có chắc muốn xóa bản ghi này?')) {
+        // Mở hộp thoại yêu cầu nhập mật khẩu
+        const password = prompt('Vui lòng nhập mật khẩu quản lý để xóa:');
+        
+        // Nếu người dùng bấm "Hủy" (Cancel)
+        if (password === null) {
+            return; 
+        }
+
+        // Kiểm tra đúng mật khẩu 666919
+        if (password === '666919') {
             logs.splice(index, 1);
             localStorage.setItem('washLogs', JSON.stringify(logs));
             renderTable();
+            alert('Đã xóa dữ liệu thành công!');
+        } else {
+            // Nếu nhập sai
+            alert('Mật khẩu sai! Không thể xóa bản ghi.');
         }
     }
 
