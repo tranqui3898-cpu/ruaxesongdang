@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Khai Báo Rửa Xe</title>
     <style>
+        /* Sửa lỗi tràn viền trên điện thoại */
+        * { 
+            box-sizing: border-box; 
+        }
+        
         body { 
             font-family: Arial, sans-serif; 
             background-color: #f0f2f5; 
@@ -13,6 +18,7 @@
         }
         .app-container { 
             max-width: 500px; 
+            width: 100%;
             margin: 0 auto; 
             background: #ffffff; 
             padding: 20px; 
@@ -23,6 +29,7 @@
             text-align: center; 
             color: #1a73e8; 
             margin-top: 0;
+            font-size: 22px;
         }
         .summary-box { 
             display: flex; 
@@ -43,11 +50,13 @@
         .input-row {
             display: flex;
             gap: 10px;
+            width: 100%;
         }
         input[type="text"] { 
-            flex: 1;
-            padding: 16px; 
-            font-size: 20px; 
+            flex: 1; /* Tự động co giãn phần còn lại */
+            min-width: 0;
+            padding: 15px; 
+            font-size: 18px; 
             border: 2px solid #ccc; 
             border-radius: 8px; 
             text-transform: uppercase;
@@ -58,7 +67,8 @@
             outline: none;
         }
         .btn-camera {
-            padding: 0 20px;
+            width: 60px; /* Khóa cứng chiều rộng nút camera */
+            flex-shrink: 0;
             font-size: 24px;
             background: #fbbc05;
             color: white;
@@ -72,8 +82,9 @@
         .btn-camera:active { background: #e0a800; }
         
         button.btn-submit { 
+            width: 100%;
             padding: 18px; 
-            font-size: 20px; 
+            font-size: 18px; 
             background: #34a853; 
             color: white; 
             border: none; 
@@ -84,20 +95,21 @@
         button.btn-submit:active { background: #2d8c45; }
         
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { text-align: left; padding: 12px 8px; border-bottom: 1px solid #eee; vertical-align: middle; }
-        th { color: #5f6368; font-size: 14px; }
-        .plate-text { font-size: 18px; font-weight: bold; color: #202124; }
-        .time-text { font-size: 14px; color: #5f6368; }
+        th, td { text-align: left; padding: 10px 5px; border-bottom: 1px solid #eee; vertical-align: middle; }
+        th { color: #5f6368; font-size: 13px; }
+        .plate-text { font-size: 16px; font-weight: bold; color: #202124; }
+        .time-text { font-size: 13px; color: #5f6368; }
         .btn-delete { 
             background: #ea4335; 
             color: white; 
             border: none; 
-            padding: 6px 12px; 
+            padding: 8px 10px; 
             border-radius: 4px; 
             cursor: pointer; 
+            font-size: 13px;
         }
         .car-photo {
-            width: 80px;
+            width: 70px;
             border-radius: 4px;
             border: 1px solid #ccc;
         }
@@ -129,7 +141,7 @@
     <table>
         <thead>
             <tr>
-                <th>XE / BIỂN SỐ</th>
+                <th>XE / SỐ</th>
                 <th>GIỜ VÀO</th>
                 <th>XÓA</th>
             </tr>
@@ -183,7 +195,7 @@
         const plate = plateInput.value.trim().toUpperCase();
         
         if (!plate) {
-            alert('Vui lòng nhập biển số xe hoặc bấm 📷 để chụp ảnh!');
+            alert('Vui lòng nhập biển số xe hoặc bấm nút 📷 để chụp ảnh!');
             return;
         }
 
