@@ -12,6 +12,10 @@
     <meta name="apple-mobile-web-app-title" content="Rửa Xe">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3204/3204095.png">
 
+    <!-- THƯ VIỆN FIREBASE -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
     <style>
         * { box-sizing: border-box; }
         body { 
@@ -36,7 +40,6 @@
             margin-top: 0;
             font-size: 24px;
         }
-
         .employee-box {
             display: flex;
             align-items: center;
@@ -63,11 +66,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .emp-hint {
-            font-size: 12px;
-            color: #cc8800;
-        }
-
+        .emp-hint { font-size: 12px; color: #cc8800; }
         .summary-box { 
             display: flex; 
             justify-content: space-between; 
@@ -84,11 +83,7 @@
             gap: 12px; 
             margin-bottom: 20px; 
         }
-        .input-row {
-            display: flex;
-            gap: 10px;
-            width: 100%;
-        }
+        .input-row { display: flex; gap: 10px; width: 100%; }
         input[type="text"].plate-input { 
             flex: 1; 
             min-width: 0;
@@ -119,7 +114,6 @@
             justify-content: center;
         }
         .btn-camera:active { background: #e0a800; }
-        
         button.btn-submit { 
             width: 100%;
             padding: 15px; 
@@ -132,7 +126,6 @@
             font-weight: bold; 
         }
         button.btn-submit:active { background: #2d8c45; }
-
         button.btn-warning-trigger {
             width: 100%;
             padding: 15px;
@@ -150,14 +143,11 @@
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { text-align: left; padding: 12px 5px; border-bottom: 1px solid #3a3b3c; vertical-align: middle; }
         th { color: #b0b3b8; font-size: 13px; }
-        
         .plate-text { font-size: 16px; font-weight: bold; color: #ffffff; }
         .time-text { font-size: 13px; color: #b0b3b8; margin-bottom: 4px;}
         .emp-text { font-size: 12px; color: #3399ff; }
-        
         .log-warning-row { background-color: #330000 !important; }
         .warning-text { font-size: 14px; font-weight: bold; color: #ff4d4d; }
-
         .btn-delete { 
             background: #ea4335; 
             color: white; 
@@ -167,11 +157,7 @@
             cursor: pointer; 
             font-size: 13px;
         }
-        .car-photo {
-            width: 70px;
-            border-radius: 4px;
-            border: 1px solid #555;
-        }
+        .car-photo { width: 70px; border-radius: 4px; border: 1px solid #555; }
     </style>
 </head>
 <body>
@@ -200,7 +186,6 @@
         <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;" onchange="handleCamera(event)">
     </div>
 
-    <!-- Đã thêm id="warningBtn" để quản lý việc ẩn/hiện -->
     <button id="warningBtn" class="btn-warning-trigger" onclick="addManagerWarning()">⚠️ LƯU CẢNH BÁO (Lấy từ ô nhập)</button>
 
     <table>
@@ -217,22 +202,32 @@
 </div>
 
 <script>
-    let logs = JSON.parse(localStorage.getItem('washLogs')) || [];
-    
+    // 1. KHỞI TẠO FIREBASE
+    const firebaseConfig = {
+      apiKey: "AIzaSyBA_tZW3w7FGgtNpVlmqmsDIm75CvkOrNw",
+      authDomain: "rua-xe-d0342.firebaseapp.com",
+      projectId: "rua-xe-d0342",
+      storageBucket: "rua-xe-d0342.firebasestorage.app",
+      messagingSenderId: "194295967420",
+      appId: "1:194295967420:web:dc50f7f17c2696099feab9",
+      measurementId: "G-HQNXWSD2VK"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // 2. BIẾN TOÀN CỤC & GIAO DIỆN
+    let logs = [];
     let currentEmpName = localStorage.getItem('washEmpName') || "CHƯA NHẬP TÊN";
     document.getElementById('empNameDisplay').innerText = currentEmpName;
 
-    // Hàm kiểm tra tự động ẩn nút cảnh báo nếu tên là ADMIN
     function updateRoleUI() {
         const warningBtn = document.getElementById('warningBtn');
         if (currentEmpName === 'ADMIN') {
-            warningBtn.style.display = 'none'; // Ẩn nút
+            warningBtn.style.display = 'none'; 
         } else {
-            warningBtn.style.display = 'block'; // Hiện nút
+            warningBtn.style.display = 'block'; 
         }
     }
-
-    // Chạy kiểm tra ngay khi vừa mở trang
     updateRoleUI();
 
     function changeEmpName() {
@@ -243,10 +238,9 @@
             const newName = prompt('Nhập tên nhân viên tiếp nhận ca:');
             if (newName !== null && newName.trim() !== '') {
                 currentEmpName = newName.trim().toUpperCase();
-                localStorage.setItem('washEmpName', currentEmpName);
+                // Tên nhân viên vẫn lưu cục bộ trên từng máy điện thoại
+                localStorage.setItem('washEmpName', currentEmpName); 
                 document.getElementById('empNameDisplay').innerText = currentEmpName;
-                
-                // Cập nhật lại giao diện (ẩn/hiện nút) sau khi đổi tên
                 updateRoleUI(); 
             }
         } else {
@@ -254,10 +248,24 @@
         }
     }
 
-    function renderTable() {
+    function getCurrentTime() {
+        const now = new Date();
+        return now.getHours().toString().padStart(2, '0') + ':' + 
+               now.getMinutes().toString().padStart(2, '0') + ' - ' + 
+               now.getDate().toString().padStart(2, '0') + '/' + 
+               (now.getMonth() + 1).toString().padStart(2, '0');
+    }
+
+    // 3. ĐỒNG BỘ DỮ LIỆU TỪ MÁY CHỦ VỀ BẢNG (REAL-TIME)
+    db.collection("washLogs").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
         const tbody = document.getElementById('logTableBody');
         tbody.innerHTML = '';
+        logs = [];
         
+        snapshot.forEach((doc) => {
+            logs.push({ id: doc.id, ...doc.data() });
+        });
+
         const actualCars = logs.filter(log => log.type !== 'warning').length;
         document.getElementById('totalCars').innerText = actualCars;
 
@@ -289,16 +297,9 @@
             }
             tbody.appendChild(tr);
         });
-    }
+    });
 
-    function getCurrentTime() {
-        const now = new Date();
-        return now.getHours().toString().padStart(2, '0') + ':' + 
-               now.getMinutes().toString().padStart(2, '0') + ' - ' + 
-               now.getDate().toString().padStart(2, '0') + '/' + 
-               (now.getMonth() + 1).toString().padStart(2, '0');
-    }
-
+    // 4. ĐẨY DỮ LIỆU LÊN MÁY CHỦ
     function addTextCar() {
         const plateInput = document.getElementById('carPlate');
         const plate = plateInput.value.trim().toUpperCase();
@@ -308,17 +309,16 @@
             return;
         }
 
-        logs.unshift({ 
-            type: 'normal', 
-            plate: plate, 
-            time: getCurrentTime(), 
+        db.collection("washLogs").add({
+            type: 'normal',
+            plate: plate,
+            time: getCurrentTime(),
             photo: null,
-            emp: currentEmpName
+            emp: currentEmpName,
+            createdAt: Date.now()
         });
-        localStorage.setItem('washLogs', JSON.stringify(logs));
         
         plateInput.value = '';
-        renderTable();
     }
 
     function handleCamera(event) {
@@ -339,16 +339,14 @@
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
 
-                logs.unshift({ 
-                    type: 'normal', 
-                    plate: 'Ảnh chụp', 
-                    time: getCurrentTime(), 
+                db.collection("washLogs").add({
+                    type: 'normal',
+                    plate: 'Ảnh chụp',
+                    time: getCurrentTime(),
                     photo: dataUrl,
-                    emp: currentEmpName
+                    emp: currentEmpName,
+                    createdAt: Date.now()
                 });
-                localStorage.setItem('washLogs', JSON.stringify(logs));
-                
-                renderTable();
             }
             img.src = e.target.result;
         }
@@ -367,17 +365,16 @@
                 ? '⚠️ QUẢN LÝ: ' + customWarning.toUpperCase() 
                 : '⚠️ QUẢN LÝ NHẮC: CHƯA CẬP NHẬT XE!';
 
-            logs.unshift({ 
-                type: 'warning', 
-                plate: finalWarning, 
-                time: getCurrentTime(), 
+            db.collection("washLogs").add({
+                type: 'warning',
+                plate: finalWarning,
+                time: getCurrentTime(),
                 photo: null,
-                emp: '' 
+                emp: '',
+                createdAt: Date.now()
             });
-            localStorage.setItem('washLogs', JSON.stringify(logs));
             
             plateInput.value = ''; 
-            renderTable();
         } else {
             alert('Mật khẩu sai!');
         }
@@ -388,15 +385,13 @@
         if (password === null) return; 
 
         if (password === '666919') {
-            logs.splice(index, 1);
-            localStorage.setItem('washLogs', JSON.stringify(logs));
-            renderTable();
+            const logId = logs[index].id;
+            // Xóa dữ liệu trực tiếp trên máy chủ
+            db.collection("washLogs").doc(logId).delete();
         } else {
             alert('Mật khẩu sai! Không thể xóa bản ghi.');
         }
     }
-
-    renderTable();
 </script>
 
 </body>
