@@ -114,6 +114,7 @@
             justify-content: center;
         }
         .btn-camera:active { background: #e0a800; }
+        
         button.btn-submit { 
             width: 100%;
             padding: 15px; 
@@ -126,6 +127,7 @@
             font-weight: bold; 
         }
         button.btn-submit:active { background: #2d8c45; }
+        
         button.btn-warning-trigger {
             width: 100%;
             padding: 15px;
@@ -139,6 +141,21 @@
             margin-bottom: 10px;
         }
         button.btn-warning-trigger:active { background: #660000; }
+
+        /* Nút Reset Ca */
+        button.btn-reset {
+            width: 100%;
+            padding: 15px;
+            font-size: 15px;
+            background: #b30000;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        button.btn-reset:active { background: #800000; }
         
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { text-align: left; padding: 12px 5px; border-bottom: 1px solid #3a3b3c; vertical-align: middle; }
@@ -187,6 +204,9 @@
     </div>
 
     <button id="warningBtn" class="btn-warning-trigger" onclick="addManagerWarning()">⚠️ LƯU CẢNH BÁO (Lấy từ ô nhập)</button>
+    
+    <!-- Nút Làm Mới Ca Trực -->
+    <button class="btn-reset" onclick="resetShift()">🔄 LÀM MỚI CA TRỰC (XÓA TẤT CẢ)</button>
 
     <table>
         <thead>
@@ -202,7 +222,7 @@
 </div>
 
 <script>
-    // 1. KHỞI TẠO FIREBASE
+    // KHỞI TẠO FIREBASE
     const firebaseConfig = {
       apiKey: "AIzaSyBA_tZW3w7FGgtNpVlmqmsDIm75CvkOrNw",
       authDomain: "rua-xe-d0342.firebaseapp.com",
@@ -215,7 +235,6 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // 2. BIẾN TOÀN CỤC & GIAO DIỆN
     let logs = [];
     let currentEmpName = localStorage.getItem('washEmpName') || "CHƯA NHẬP TÊN";
     document.getElementById('empNameDisplay').innerText = currentEmpName;
@@ -238,7 +257,6 @@
             const newName = prompt('Nhập tên nhân viên tiếp nhận ca:');
             if (newName !== null && newName.trim() !== '') {
                 currentEmpName = newName.trim().toUpperCase();
-                // Tên nhân viên vẫn lưu cục bộ trên từng máy điện thoại
                 localStorage.setItem('washEmpName', currentEmpName); 
                 document.getElementById('empNameDisplay').innerText = currentEmpName;
                 updateRoleUI(); 
@@ -256,7 +274,7 @@
                (now.getMonth() + 1).toString().padStart(2, '0');
     }
 
-    // 3. ĐỒNG BỘ DỮ LIỆU TỪ MÁY CHỦ VỀ BẢNG (REAL-TIME)
+    // ĐỒNG BỘ DỮ LIỆU TỪ MÁY CHỦ
     db.collection("washLogs").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
         const tbody = document.getElementById('logTableBody');
         tbody.innerHTML = '';
@@ -299,7 +317,7 @@
         });
     });
 
-    // 4. ĐẨY DỮ LIỆU LÊN MÁY CHỦ
+    // ĐẨY DỮ LIỆU LÊN MÁY CHỦ
     function addTextCar() {
         const plateInput = document.getElementById('carPlate');
         const plate = plateInput.value.trim().toUpperCase();
@@ -386,10 +404,32 @@
 
         if (password === '666919') {
             const logId = logs[index].id;
-            // Xóa dữ liệu trực tiếp trên máy chủ
             db.collection("washLogs").doc(logId).delete();
         } else {
             alert('Mật khẩu sai! Không thể xóa bản ghi.');
+        }
+    }
+
+    // Hàm RESET toàn bộ dữ liệu ca
+    function resetShift() {
+        if (logs.length === 0) {
+            alert('Bảng hiện tại đang trống, không cần làm mới!');
+            return;
+        }
+
+        const pwd = prompt('Yêu cầu nhập mật khẩu quản lý để Làm Mới (Xóa toàn bộ ca):');
+        if (pwd === null) return;
+
+        if (pwd === '666919') {
+            if (confirm('⚠️ BẠN CÓ CHẮC CHẮN?\nHành động này sẽ xóa vĩnh viễn toàn bộ dữ liệu xe hiện tại để bắt đầu ca mới!')) {
+                // Xóa từng dòng trên máy chủ Firestore
+                logs.forEach(log => {
+                    db.collection("washLogs").doc(log.id).delete();
+                });
+                alert('Đã làm mới ca trực thành công!');
+            }
+        } else {
+            alert('Mật khẩu sai! Không thể làm mới.');
         }
     }
 </script>
