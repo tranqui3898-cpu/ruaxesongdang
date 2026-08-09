@@ -199,8 +199,6 @@
         </div>
         
         <button class="btn-submit" onclick="addTextCar()">XÁC NHẬN & LƯU</button>
-        
-        <!-- Input file ẩn động -->
         <input type="file" id="cameraInput" style="display: none;" onchange="handleCamera(event)">
     </div>
 
@@ -233,6 +231,14 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // Tự động tính mật khẩu theo ngày hiện tại: Ngày + Tháng
+    function getDailyPassword() {
+        const now = new Date();
+        const day = now.getDate();       // Lấy ngày (vd: 9)
+        const month = now.getMonth() + 1; // Lấy tháng (vd: 8)
+        return (day + month).toString();  // Cộng lại thành chuỗi (vd: "17")
+    }
+
     let logs = [];
     let currentEmpName = localStorage.getItem('washEmpName') || "CHƯA NHẬP TÊN";
     document.getElementById('empNameDisplay').innerText = currentEmpName;
@@ -251,7 +257,7 @@
         const pwd = prompt('Yêu cầu nhập mật khẩu để thay đổi ca trực:');
         if (pwd === null) return; 
 
-        if (pwd === '666919') {
+        if (pwd === getDailyPassword()) {
             const newName = prompt('Nhập tên nhân viên tiếp nhận ca:');
             if (newName !== null && newName.trim() !== '') {
                 currentEmpName = newName.trim().toUpperCase();
@@ -272,14 +278,11 @@
                (now.getMonth() + 1).toString().padStart(2, '0');
     }
 
-    // Phân quyền nút 📷 dựa vào tên ca trực
     function handleCameraClick() {
         const fileInput = document.getElementById('cameraInput');
         if (currentEmpName === 'ADMIN') {
-            // Nếu là ADMIN: Cho phép chọn từ thư viện hoặc chụp tùy ý
             fileInput.removeAttribute('capture');
         } else {
-            // Nếu là Nhân viên: Ép buộc bật trực tiếp camera sau của điện thoại
             fileInput.setAttribute('capture', 'environment');
         }
         fileInput.click();
@@ -385,7 +388,7 @@
         const pwd = prompt('Vui lòng nhập mật khẩu quản lý để phát cảnh báo:');
         if (pwd === null) return;
         
-        if (pwd === '666919') {
+        if (pwd === getDailyPassword()) {
             const plateInput = document.getElementById('carPlate');
             const customWarning = plateInput.value.trim();
             
@@ -412,7 +415,7 @@
         const password = prompt('Vui lòng nhập mật khẩu quản lý để xóa:');
         if (password === null) return; 
 
-        if (password === '666919') {
+        if (password === getDailyPassword()) {
             const logId = logs[index].id;
             db.collection("washLogs").doc(logId).delete();
         } else {
@@ -429,7 +432,7 @@
         const pwd = prompt('Yêu cầu nhập mật khẩu quản lý để Làm Mới (Xóa toàn bộ ca):');
         if (pwd === null) return;
 
-        if (pwd === '666919') {
+        if (pwd === getDailyPassword()) {
             if (confirm('⚠️ BẠN CÓ CHẮC CHẮN?\nHành động này sẽ xóa vĩnh viễn toàn bộ dữ liệu xe hiện tại để bắt đầu ca mới!')) {
                 logs.forEach(log => {
                     db.collection("washLogs").doc(log.id).delete();
