@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khai Báo Rửa Xe</title>
+    <style>
+        /* Thiết kế giao diện tối giản, phù hợp cho màn hình điện thoại */
+        body { 
+            font-family: Arial, sans-serif; 
+            background-color: #f0f2f5; 
+            margin: 0; 
+            padding: 15px; 
+        }
+        .app-container { 
+            max-width: 500px; 
+            margin: 0 auto; 
+            background: #ffffff; 
+            padding: 20px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+        }
+        h2 { 
+            text-align: center; 
+            color: #1a73e8; 
+            margin-top: 0;
+        }
+        .summary-box { 
+            display: flex; 
+            justify-content: space-between; 
+            background: #e8f0fe; 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin-bottom: 20px; 
+            font-weight: bold; 
+            font-size: 18px;
+        }
+        .input-group { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
+            margin-bottom: 25px; 
+        }
+        input { 
+            padding: 16px; 
+            font-size: 20px; 
+            border: 2px solid #ccc; 
+            border-radius: 8px; 
+            text-transform: uppercase;
+            text-align: center;
+        }
+        input:focus {
+            border-color: #1a73e8;
+            outline: none;
+        }
+        button.btn-submit { 
+            padding: 18px; 
+            font-size: 20px; 
+            background: #34a853; 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: bold; 
+        }
+        button.btn-submit:active { background: #2d8c45; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { text-align: left; padding: 12px 8px; border-bottom: 1px solid #eee; }
+        th { color: #5f6368; font-size: 14px; }
+        .plate-text { font-size: 18px; font-weight: bold; color: #202124; }
+        .time-text { font-size: 14px; color: #5f6368; }
+        .btn-delete { 
+            background: #ea4335; 
+            color: white; 
+            border: none; 
+            padding: 6px 12px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <h2>GHI NHẬN XE VÀO CA</h2>
+    
+    <div class="summary-box">
+        <span>Tổng xe trong ca:</span>
+        <span id="totalCars" style="color: #34a853; font-size: 22px;">0</span>
+    </div>
+
+    <div class="input-group">
+        <input type="text" id="carPlate" placeholder="Nhập biển số xe..." autocomplete="off">
+        <button class="btn-submit" onclick="addCar()">XÁC NHẬN & LƯU</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>BIỂN SỐ</th>
+                <th>GIỜ VÀO</th>
+                <th>XÓA</th>
+            </tr>
+        </thead>
+        <tbody id="logTableBody">
+            <!-- Dữ liệu xe sẽ hiển thị ở đây -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    // Lấy dữ liệu đã lưu trong trình duyệt (nếu có)
+    let logs = JSON.parse(localStorage.getItem('washLogs')) || [];
+
+    // Hàm hiển thị danh sách
+    function renderTable() {
+        const tbody = document.getElementById('logTableBody');
+        tbody.innerHTML = '';
+        document.getElementById('totalCars').innerText = logs.length;
+
+        logs.forEach((log, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="plate-text">${log.plate}</td>
+                <td class="time-text">${log.time}</td>
+                <td><button class="btn-delete" onclick="deleteLog(${index})">Xóa</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Hàm thêm xe mới
+    function addCar() {
+        const plateInput = document.getElementById('carPlate');
+        const plate = plateInput.value.trim().toUpperCase();
+        
+        if (!plate) {
+            alert('Vui lòng nhập biển số xe!');
+            return;
+        }
+
+        // Tự động lấy giờ hiện tại
+        const now = new Date();
+        const timeStr = now.getHours().toString().padStart(2, '0') + ':' + 
+                        now.getMinutes().toString().padStart(2, '0') + ' - ' + 
+                        now.getDate().toString().padStart(2, '0') + '/' + 
+                        (now.getMonth() + 1).toString().padStart(2, '0');
+
+        // Thêm vào danh sách và lưu lại
+        logs.unshift({ plate: plate, time: timeStr });
+        localStorage.setItem('washLogs', JSON.stringify(logs));
+        
+        // Xóa ô nhập và cập nhật bảng
+        plateInput.value = '';
+        renderTable();
+    }
+
+    // Hàm xóa xe (nếu nhập nhầm)
+    function deleteLog(index) {
+        if(confirm('Bạn có chắc muốn xóa bản ghi này?')) {
+            logs.splice(index, 1);
+            localStorage.setItem('washLogs', JSON.stringify(logs));
+            renderTable();
+        }
+    }
+
+    // Hiển thị dữ liệu khi vừa mở trang
+    renderTable();
+</script>
+
+</body>
+</html>
