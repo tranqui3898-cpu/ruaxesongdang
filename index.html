@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Khai Báo Rửa Xe</title>
     <style>
-        /* Thiết kế giao diện tối giản, phù hợp cho màn hình điện thoại */
         body { 
             font-family: Arial, sans-serif; 
             background-color: #f0f2f5; 
@@ -41,7 +40,12 @@
             gap: 12px; 
             margin-bottom: 25px; 
         }
-        input { 
+        .input-row {
+            display: flex;
+            gap: 10px;
+        }
+        input[type="text"] { 
+            flex: 1;
             padding: 16px; 
             font-size: 20px; 
             border: 2px solid #ccc; 
@@ -49,10 +53,24 @@
             text-transform: uppercase;
             text-align: center;
         }
-        input:focus {
+        input[type="text"]:focus {
             border-color: #1a73e8;
             outline: none;
         }
+        .btn-camera {
+            padding: 0 20px;
+            font-size: 24px;
+            background: #fbbc05;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-camera:active { background: #e0a800; }
+        
         button.btn-submit { 
             padding: 18px; 
             font-size: 20px; 
@@ -66,7 +84,7 @@
         button.btn-submit:active { background: #2d8c45; }
         
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { text-align: left; padding: 12px 8px; border-bottom: 1px solid #eee; }
+        th, td { text-align: left; padding: 12px 8px; border-bottom: 1px solid #eee; vertical-align: middle; }
         th { color: #5f6368; font-size: 14px; }
         .plate-text { font-size: 18px; font-weight: bold; color: #202124; }
         .time-text { font-size: 14px; color: #5f6368; }
@@ -77,6 +95,11 @@
             padding: 6px 12px; 
             border-radius: 4px; 
             cursor: pointer; 
+        }
+        .car-photo {
+            width: 80px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
         }
     </style>
 </head>
@@ -91,14 +114,22 @@
     </div>
 
     <div class="input-group">
-        <input type="text" id="carPlate" placeholder="Nhập biển số xe..." autocomplete="off">
-        <button class="btn-submit" onclick="addCar()">XÁC NHẬN & LƯU</button>
+        <!-- Khu vực nhập liệu & Nút chụp ảnh -->
+        <div class="input-row">
+            <input type="text" id="carPlate" placeholder="NHẬP SỐ..." autocomplete="off">
+            <button class="btn-camera" onclick="document.getElementById('cameraInput').click()">📷</button>
+        </div>
+        
+        <button class="btn-submit" onclick="addTextCar()">XÁC NHẬN & LƯU</button>
+        
+        <!-- Input ẩn để gọi Camera trên điện thoại -->
+        <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;" onchange="handleCamera(event)">
     </div>
 
     <table>
         <thead>
             <tr>
-                <th>BIỂN SỐ</th>
+                <th>XE / BIỂN SỐ</th>
                 <th>GIỜ VÀO</th>
                 <th>XÓA</th>
             </tr>
@@ -110,10 +141,8 @@
 </div>
 
 <script>
-    // Lấy dữ liệu đã lưu trong trình duyệt (nếu có)
     let logs = JSON.parse(localStorage.getItem('washLogs')) || [];
 
-    // Hàm hiển thị danh sách
     function renderTable() {
         const tbody = document.getElementById('logTableBody');
         tbody.innerHTML = '';
@@ -121,8 +150,17 @@
 
         logs.forEach((log, index) => {
             const tr = document.createElement('tr');
+            
+            // Nếu có ảnh thì hiển thị ảnh, nếu không thì hiển thị chữ
+            let displayContent = '';
+            if (log.photo) {
+                displayContent = `<img src="${log.photo}" class="car-photo" alt="Xe">`;
+            } else {
+                displayContent = `<span class="plate-text">${log.plate}</span>`;
+            }
+
             tr.innerHTML = `
-                <td class="plate-text">${log.plate}</td>
+                <td>${displayContent}</td>
                 <td class="time-text">${log.time}</td>
                 <td><button class="btn-delete" onclick="deleteLog(${index})">Xóa</button></td>
             `;
@@ -130,55 +168,80 @@
         });
     }
 
-    // Hàm thêm xe mới
-    function addCar() {
+    // Hàm lấy thời gian chuẩn
+    function getCurrentTime() {
+        const now = new Date();
+        return now.getHours().toString().padStart(2, '0') + ':' + 
+               now.getMinutes().toString().padStart(2, '0') + ' - ' + 
+               now.getDate().toString().padStart(2, '0') + '/' + 
+               (now.getMonth() + 1).toString().padStart(2, '0');
+    }
+
+    // Ghi nhận bằng chữ (nhập tay)
+    function addTextCar() {
         const plateInput = document.getElementById('carPlate');
         const plate = plateInput.value.trim().toUpperCase();
         
         if (!plate) {
-            alert('Vui lòng nhập biển số xe!');
+            alert('Vui lòng nhập biển số xe hoặc bấm 📷 để chụp ảnh!');
             return;
         }
 
-        // Tự động lấy giờ hiện tại
-        const now = new Date();
-        const timeStr = now.getHours().toString().padStart(2, '0') + ':' + 
-                        now.getMinutes().toString().padStart(2, '0') + ' - ' + 
-                        now.getDate().toString().padStart(2, '0') + '/' + 
-                        (now.getMonth() + 1).toString().padStart(2, '0');
-
-        // Thêm vào danh sách và lưu lại
-        logs.unshift({ plate: plate, time: timeStr });
+        logs.unshift({ plate: plate, time: getCurrentTime(), photo: null });
         localStorage.setItem('washLogs', JSON.stringify(logs));
         
-        // Xóa ô nhập và cập nhật bảng
         plateInput.value = '';
         renderTable();
     }
 
-    // Hàm xóa xe (có yêu cầu mật khẩu)
-    function deleteLog(index) {
-        // Mở hộp thoại yêu cầu nhập mật khẩu
-        const password = prompt('Vui lòng nhập mật khẩu quản lý để xóa:');
-        
-        // Nếu người dùng bấm "Hủy" (Cancel)
-        if (password === null) {
-            return; 
-        }
+    // Xử lý khi nhân viên chụp ảnh xong
+    function handleCamera(event) {
+        const file = event.target.files[0];
+        if (!file) return;
 
-        // Kiểm tra đúng mật khẩu 666919
+        // Dùng Canvas để nén ảnh nhỏ lại (tránh đầy bộ nhớ trình duyệt)
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 150; // Kích thước hiển thị thu nhỏ
+                const scaleSize = MAX_WIDTH / img.width;
+                canvas.width = MAX_WIDTH;
+                canvas.height = img.height * scaleSize;
+                
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                
+                // Chuyển ảnh thành chuỗi base64 đã nén
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+
+                // Lưu vào danh sách ngay lập tức
+                logs.unshift({ plate: 'Ảnh', time: getCurrentTime(), photo: dataUrl });
+                localStorage.setItem('washLogs', JSON.stringify(logs));
+                
+                renderTable();
+            }
+            img.src = e.target.result;
+        }
+        reader.readAsDataURL(file);
+    }
+
+    function deleteLog(index) {
+        const password = prompt('Vui lòng nhập mật khẩu quản lý (666919) để xóa:');
+        
+        if (password === null) return; 
+
         if (password === '666919') {
             logs.splice(index, 1);
             localStorage.setItem('washLogs', JSON.stringify(logs));
             renderTable();
             alert('Đã xóa dữ liệu thành công!');
         } else {
-            // Nếu nhập sai
             alert('Mật khẩu sai! Không thể xóa bản ghi.');
         }
     }
 
-    // Hiển thị dữ liệu khi vừa mở trang
     renderTable();
 </script>
 
