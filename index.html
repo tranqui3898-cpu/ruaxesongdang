@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Khai Báo Rửa Xe</title>
+    
+    <!-- Cấu hình Web App độc lập phải nằm ở đây -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Rửa Xe">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3204/3204095.png">
+
     <style>
         * { box-sizing: border-box; }
         body { 
@@ -214,7 +222,6 @@
     document.getElementById('empNameDisplay').innerText = currentEmpName;
 
     function changeEmpName() {
-        // Đã sửa lỗi lộ mật khẩu ở dòng dưới đây
         const pwd = prompt('Yêu cầu nhập mật khẩu để thay đổi ca trực:');
         if (pwd === null) return; 
 
@@ -377,11 +384,3 @@
 
 </body>
 </html>
-<!-- Liên kết file manifest để biến thành Web App -->
-    <link rel="manifest" href="manifest.json">
-    
-    <!-- Cấu hình bắt buộc dành riêng cho iPhone (iOS) -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="apple-mobile-web-app-title" content="Rửa Xe">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3204/3204095.png">
