@@ -29,7 +29,6 @@
             font-size: 24px;
         }
 
-        /* Khung tên nhân viên được thiết kế dạng nút bấm */
         .employee-box {
             display: flex;
             align-items: center;
@@ -172,7 +171,6 @@
 <div class="app-container">
     <h2>GHI NHẬN XE VÀO CA</h2>
     
-    <!-- Nút thay đổi ca yêu cầu mật khẩu -->
     <div class="employee-box" onclick="changeEmpName()">
         <span class="emp-label">Ca của:</span>
         <span id="empNameDisplay">CHƯA NHẬP TÊN</span>
@@ -212,13 +210,12 @@
 <script>
     let logs = JSON.parse(localStorage.getItem('washLogs')) || [];
     
-    // Tự động tải tên nhân viên đã lưu
     let currentEmpName = localStorage.getItem('washEmpName') || "CHƯA NHẬP TÊN";
     document.getElementById('empNameDisplay').innerText = currentEmpName;
 
-    // Hàm yêu cầu mật khẩu khi muốn đổi tên nhân viên
     function changeEmpName() {
-        const pwd = prompt('Yêu cầu nhập mật khẩu (666919) để thay đổi ca trực:');
+        // Đã sửa lỗi lộ mật khẩu ở dòng dưới đây
+        const pwd = prompt('Yêu cầu nhập mật khẩu để thay đổi ca trực:');
         if (pwd === null) return; 
 
         if (pwd === '666919') {
@@ -334,7 +331,6 @@
         reader.readAsDataURL(file);
     }
 
-    // Lấy nội dung từ ô nhập chữ để làm cảnh báo
     function addManagerWarning() {
         const pwd = prompt('Vui lòng nhập mật khẩu quản lý để phát cảnh báo:');
         if (pwd === null) return;
@@ -343,7 +339,6 @@
             const plateInput = document.getElementById('carPlate');
             const customWarning = plateInput.value.trim();
             
-            // Nếu có chữ thì lấy chữ đó, nếu để trống thì dùng câu mặc định
             const finalWarning = customWarning 
                 ? '⚠️ QUẢN LÝ: ' + customWarning.toUpperCase() 
                 : '⚠️ QUẢN LÝ NHẮC: CHƯA CẬP NHẬT XE!';
@@ -357,7 +352,7 @@
             });
             localStorage.setItem('washLogs', JSON.stringify(logs));
             
-            plateInput.value = ''; // Làm sạch ô
+            plateInput.value = ''; 
             renderTable();
         } else {
             alert('Mật khẩu sai!');
