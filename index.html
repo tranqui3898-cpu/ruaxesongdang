@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Khai Báo Rửa Xe</title>
     
-    <!-- Cấu hình Web App độc lập phải nằm ở đây -->
+    <!-- Cấu hình Web App độc lập -->
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -200,7 +200,8 @@
         <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;" onchange="handleCamera(event)">
     </div>
 
-    <button class="btn-warning-trigger" onclick="addManagerWarning()">⚠️ LƯU CẢNH BÁO (Lấy từ ô nhập)</button>
+    <!-- Đã thêm id="warningBtn" để quản lý việc ẩn/hiện -->
+    <button id="warningBtn" class="btn-warning-trigger" onclick="addManagerWarning()">⚠️ LƯU CẢNH BÁO (Lấy từ ô nhập)</button>
 
     <table>
         <thead>
@@ -221,6 +222,19 @@
     let currentEmpName = localStorage.getItem('washEmpName') || "CHƯA NHẬP TÊN";
     document.getElementById('empNameDisplay').innerText = currentEmpName;
 
+    // Hàm kiểm tra tự động ẩn nút cảnh báo nếu tên là ADMIN
+    function updateRoleUI() {
+        const warningBtn = document.getElementById('warningBtn');
+        if (currentEmpName === 'ADMIN') {
+            warningBtn.style.display = 'none'; // Ẩn nút
+        } else {
+            warningBtn.style.display = 'block'; // Hiện nút
+        }
+    }
+
+    // Chạy kiểm tra ngay khi vừa mở trang
+    updateRoleUI();
+
     function changeEmpName() {
         const pwd = prompt('Yêu cầu nhập mật khẩu để thay đổi ca trực:');
         if (pwd === null) return; 
@@ -231,6 +245,9 @@
                 currentEmpName = newName.trim().toUpperCase();
                 localStorage.setItem('washEmpName', currentEmpName);
                 document.getElementById('empNameDisplay').innerText = currentEmpName;
+                
+                // Cập nhật lại giao diện (ẩn/hiện nút) sau khi đổi tên
+                updateRoleUI(); 
             }
         } else {
             alert('Mật khẩu sai! Không thể đổi ca.');
