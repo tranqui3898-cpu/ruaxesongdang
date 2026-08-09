@@ -53,7 +53,7 @@
             width: 100%;
         }
         input[type="text"] { 
-            flex: 1; /* Tự động co giãn phần còn lại */
+            flex: 1; 
             min-width: 0;
             padding: 15px; 
             font-size: 18px; 
@@ -67,7 +67,7 @@
             outline: none;
         }
         .btn-camera {
-            width: 60px; /* Khóa cứng chiều rộng nút camera */
+            width: 60px; 
             flex-shrink: 0;
             font-size: 24px;
             background: #fbbc05;
@@ -126,7 +126,6 @@
     </div>
 
     <div class="input-group">
-        <!-- Khu vực nhập liệu & Nút chụp ảnh -->
         <div class="input-row">
             <input type="text" id="carPlate" placeholder="NHẬP SỐ..." autocomplete="off">
             <button class="btn-camera" onclick="document.getElementById('cameraInput').click()">📷</button>
@@ -134,7 +133,6 @@
         
         <button class="btn-submit" onclick="addTextCar()">XÁC NHẬN & LƯU</button>
         
-        <!-- Input ẩn để gọi Camera trên điện thoại -->
         <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;" onchange="handleCamera(event)">
     </div>
 
@@ -147,7 +145,6 @@
             </tr>
         </thead>
         <tbody id="logTableBody">
-            <!-- Dữ liệu xe sẽ hiển thị ở đây -->
         </tbody>
     </table>
 </div>
@@ -163,7 +160,6 @@
         logs.forEach((log, index) => {
             const tr = document.createElement('tr');
             
-            // Nếu có ảnh thì hiển thị ảnh, nếu không thì hiển thị chữ
             let displayContent = '';
             if (log.photo) {
                 displayContent = `<img src="${log.photo}" class="car-photo" alt="Xe">`;
@@ -180,7 +176,6 @@
         });
     }
 
-    // Hàm lấy thời gian chuẩn
     function getCurrentTime() {
         const now = new Date();
         return now.getHours().toString().padStart(2, '0') + ':' + 
@@ -189,7 +184,6 @@
                (now.getMonth() + 1).toString().padStart(2, '0');
     }
 
-    // Ghi nhận bằng chữ (nhập tay)
     function addTextCar() {
         const plateInput = document.getElementById('carPlate');
         const plate = plateInput.value.trim().toUpperCase();
@@ -206,18 +200,16 @@
         renderTable();
     }
 
-    // Xử lý khi nhân viên chụp ảnh xong
     function handleCamera(event) {
         const file = event.target.files[0];
         if (!file) return;
 
-        // Dùng Canvas để nén ảnh nhỏ lại (tránh đầy bộ nhớ trình duyệt)
         const reader = new FileReader();
         reader.onload = function(e) {
             const img = new Image();
             img.onload = function() {
                 const canvas = document.createElement('canvas');
-                const MAX_WIDTH = 150; // Kích thước hiển thị thu nhỏ
+                const MAX_WIDTH = 150;
                 const scaleSize = MAX_WIDTH / img.width;
                 canvas.width = MAX_WIDTH;
                 canvas.height = img.height * scaleSize;
@@ -225,10 +217,8 @@
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 
-                // Chuyển ảnh thành chuỗi base64 đã nén
                 const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
 
-                // Lưu vào danh sách ngay lập tức
                 logs.unshift({ plate: 'Ảnh', time: getCurrentTime(), photo: dataUrl });
                 localStorage.setItem('washLogs', JSON.stringify(logs));
                 
@@ -240,7 +230,8 @@
     }
 
     function deleteLog(index) {
-        const password = prompt('Vui lòng nhập mật khẩu quản lý (666919) để xóa:');
+        // Đã sửa lỗi lộ mật khẩu ở đây
+        const password = prompt('Vui lòng nhập mật khẩu quản lý để xóa:');
         
         if (password === null) return; 
 
