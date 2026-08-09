@@ -5,13 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Khai Báo Rửa Xe</title>
     <style>
-        /* Ép tỷ lệ, chống tràn viền */
         * { box-sizing: border-box; }
-        
         body { 
             font-family: Arial, sans-serif; 
-            background-color: #18191a; /* Nền đen Dark Mode */
-            color: #e4e6eb; /* Chữ xám sáng */
+            background-color: #18191a; 
+            color: #e4e6eb; 
             margin: 0; 
             padding: 15px; 
         }
@@ -19,7 +17,7 @@
             max-width: 500px; 
             width: 100%;
             margin: 0 auto; 
-            background: #242526; /* Nền khối xám đậm */
+            background: #242526; 
             padding: 20px; 
             border-radius: 12px; 
             box-shadow: 0 4px 12px rgba(0,0,0,0.5); 
@@ -31,32 +29,37 @@
             font-size: 24px;
         }
 
-        /* Ô nhập Tên Nhân Viên - Đã fix lỗi giao diện */
+        /* Khung tên nhân viên được thiết kế dạng nút bấm */
         .employee-box {
             display: flex;
             align-items: center;
             background-color: #2a1c0d; 
             border: 1px solid #cc8800;
             border-radius: 8px;
-            padding: 5px 15px;
+            padding: 12px 15px;
             margin-bottom: 20px;
+            cursor: pointer;
         }
+        .employee-box:active { background-color: #3d2a14; }
         .employee-box .emp-label {
             color: #ff9900;
             font-weight: bold;
             margin-right: 15px;
             white-space: nowrap;
         }
-        .employee-box input {
+        #empNameDisplay {
             flex: 1;
-            min-width: 0;
-            background: transparent;
-            border: none;
             color: #ffffff;
             font-size: 16px;
-            padding: 10px 0;
+            font-weight: bold;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        .employee-box input:focus { outline: none; }
+        .emp-hint {
+            font-size: 12px;
+            color: #cc8800;
+        }
 
         .summary-box { 
             display: flex; 
@@ -123,7 +126,6 @@
         }
         button.btn-submit:active { background: #2d8c45; }
 
-        /* Nút Cảnh Báo Của Quản Lý */
         button.btn-warning-trigger {
             width: 100%;
             padding: 15px;
@@ -142,12 +144,10 @@
         th, td { text-align: left; padding: 12px 5px; border-bottom: 1px solid #3a3b3c; vertical-align: middle; }
         th { color: #b0b3b8; font-size: 13px; }
         
-        /* Hiển thị dòng Log thường */
         .plate-text { font-size: 16px; font-weight: bold; color: #ffffff; }
         .time-text { font-size: 13px; color: #b0b3b8; margin-bottom: 4px;}
         .emp-text { font-size: 12px; color: #3399ff; }
         
-        /* Hiển thị dòng Cảnh báo */
         .log-warning-row { background-color: #330000 !important; }
         .warning-text { font-size: 14px; font-weight: bold; color: #ff4d4d; }
 
@@ -172,10 +172,11 @@
 <div class="app-container">
     <h2>GHI NHẬN XE VÀO CA</h2>
     
-    <!-- Khung nhập tên nhân viên đã sửa lỗi CSS -->
-    <div class="employee-box">
+    <!-- Nút thay đổi ca yêu cầu mật khẩu -->
+    <div class="employee-box" onclick="changeEmpName()">
         <span class="emp-label">Ca của:</span>
-        <input type="text" id="empName" placeholder="Tên nhân viên..." autocomplete="off">
+        <span id="empNameDisplay">CHƯA NHẬP TÊN</span>
+        <span class="emp-hint">✏️ Đổi</span>
     </div>
 
     <div class="summary-box">
@@ -185,7 +186,7 @@
 
     <div class="input-group">
         <div class="input-row">
-            <input type="text" id="carPlate" class="plate-input" placeholder="NHẬP SỐ..." autocomplete="off">
+            <input type="text" id="carPlate" class="plate-input" placeholder="NHẬP SỐ HOẶC LỜI NHẮC..." autocomplete="off">
             <button class="btn-camera" onclick="document.getElementById('cameraInput').click()">📷</button>
         </div>
         
@@ -193,8 +194,7 @@
         <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;" onchange="handleCamera(event)">
     </div>
 
-    <!-- Nút bắn cảnh báo đỏ của quản lý -->
-    <button class="btn-warning-trigger" onclick="addManagerWarning()">⚠️ QUẢN LÝ: GỬI CẢNH BÁO NHẮC NHỞ TRỄ</button>
+    <button class="btn-warning-trigger" onclick="addManagerWarning()">⚠️ LƯU CẢNH BÁO (Lấy từ ô nhập)</button>
 
     <table>
         <thead>
@@ -205,32 +205,44 @@
             </tr>
         </thead>
         <tbody id="logTableBody">
-            <!-- Dữ liệu render tại đây -->
         </tbody>
     </table>
 </div>
 
 <script>
     let logs = JSON.parse(localStorage.getItem('washLogs')) || [];
+    
+    // Tự động tải tên nhân viên đã lưu
+    let currentEmpName = localStorage.getItem('washEmpName') || "CHƯA NHẬP TÊN";
+    document.getElementById('empNameDisplay').innerText = currentEmpName;
 
-    // Lấy tên nhân viên, nếu trống thì để "Chưa nhập tên"
-    function getEmployeeName() {
-        const name = document.getElementById('empName').value.trim();
-        return name ? name : "Chưa nhập tên";
+    // Hàm yêu cầu mật khẩu khi muốn đổi tên nhân viên
+    function changeEmpName() {
+        const pwd = prompt('Yêu cầu nhập mật khẩu (666919) để thay đổi ca trực:');
+        if (pwd === null) return; 
+
+        if (pwd === '666919') {
+            const newName = prompt('Nhập tên nhân viên tiếp nhận ca:');
+            if (newName !== null && newName.trim() !== '') {
+                currentEmpName = newName.trim().toUpperCase();
+                localStorage.setItem('washEmpName', currentEmpName);
+                document.getElementById('empNameDisplay').innerText = currentEmpName;
+            }
+        } else {
+            alert('Mật khẩu sai! Không thể đổi ca.');
+        }
     }
 
     function renderTable() {
         const tbody = document.getElementById('logTableBody');
         tbody.innerHTML = '';
         
-        // Chỉ đếm số lượng xe thực tế, không đếm dòng cảnh báo của quản lý
         const actualCars = logs.filter(log => log.type !== 'warning').length;
         document.getElementById('totalCars').innerText = actualCars;
 
         logs.forEach((log, index) => {
             const tr = document.createElement('tr');
             
-            // Xử lý nếu là dòng cảnh báo đỏ
             if (log.type === 'warning') {
                 tr.className = 'log-warning-row';
                 tr.innerHTML = `
@@ -240,9 +252,7 @@
                     </td>
                     <td><button class="btn-delete" onclick="deleteLog(${index})">Xóa</button></td>
                 `;
-            } 
-            // Xử lý xe bình thường (chữ hoặc ảnh)
-            else {
+            } else {
                 let displayContent = log.photo 
                     ? `<img src="${log.photo}" class="car-photo" alt="Xe">` 
                     : `<span class="plate-text">${log.plate}</span>`;
@@ -268,7 +278,6 @@
                (now.getMonth() + 1).toString().padStart(2, '0');
     }
 
-    // Khi NV nhập biển số bằng tay
     function addTextCar() {
         const plateInput = document.getElementById('carPlate');
         const plate = plateInput.value.trim().toUpperCase();
@@ -283,7 +292,7 @@
             plate: plate, 
             time: getCurrentTime(), 
             photo: null,
-            emp: getEmployeeName() 
+            emp: currentEmpName
         });
         localStorage.setItem('washLogs', JSON.stringify(logs));
         
@@ -291,7 +300,6 @@
         renderTable();
     }
 
-    // Khi NV chụp ảnh
     function handleCamera(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -315,7 +323,7 @@
                     plate: 'Ảnh chụp', 
                     time: getCurrentTime(), 
                     photo: dataUrl,
-                    emp: getEmployeeName()
+                    emp: currentEmpName
                 });
                 localStorage.setItem('washLogs', JSON.stringify(logs));
                 
@@ -326,17 +334,34 @@
         reader.readAsDataURL(file);
     }
 
-    // Quản lý bấm nút gửi cảnh báo đỏ
+    // Lấy nội dung từ ô nhập chữ để làm cảnh báo
     function addManagerWarning() {
-        logs.unshift({ 
-            type: 'warning', 
-            plate: '⚠️ QUẢN LÝ NHẮC: CHƯA CẬP NHẬT XE!', 
-            time: getCurrentTime(), 
-            photo: null,
-            emp: '' 
-        });
-        localStorage.setItem('washLogs', JSON.stringify(logs));
-        renderTable();
+        const pwd = prompt('Vui lòng nhập mật khẩu quản lý để phát cảnh báo:');
+        if (pwd === null) return;
+        
+        if (pwd === '666919') {
+            const plateInput = document.getElementById('carPlate');
+            const customWarning = plateInput.value.trim();
+            
+            // Nếu có chữ thì lấy chữ đó, nếu để trống thì dùng câu mặc định
+            const finalWarning = customWarning 
+                ? '⚠️ QUẢN LÝ: ' + customWarning.toUpperCase() 
+                : '⚠️ QUẢN LÝ NHẮC: CHƯA CẬP NHẬT XE!';
+
+            logs.unshift({ 
+                type: 'warning', 
+                plate: finalWarning, 
+                time: getCurrentTime(), 
+                photo: null,
+                emp: '' 
+            });
+            localStorage.setItem('washLogs', JSON.stringify(logs));
+            
+            plateInput.value = ''; // Làm sạch ô
+            renderTable();
+        } else {
+            alert('Mật khẩu sai!');
+        }
     }
 
     function deleteLog(index) {
