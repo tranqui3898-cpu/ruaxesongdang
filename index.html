@@ -5,10 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Khai Báo Rửa Xe</title>
     <style>
-        /* Sửa lỗi tràn viền trên điện thoại */
-        * { 
-            box-sizing: border-box; 
-        }
+        * { box-sizing: border-box; }
         
         body { 
             font-family: Arial, sans-serif; 
@@ -31,13 +28,37 @@
             margin-top: 0;
             font-size: 22px;
         }
+        
+        /* Khu vực khai báo nhân viên */
+        .staff-box {
+            background: #fff3e0;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ffcc80;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .staff-box label { font-weight: bold; color: #e65100; font-size: 15px; white-space: nowrap;}
+        .staff-box input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ffcc80;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #d84315;
+            text-align: center;
+        }
+
         .summary-box { 
             display: flex; 
             justify-content: space-between; 
             background: #e8f0fe; 
             padding: 15px; 
             border-radius: 8px; 
-            margin-bottom: 20px; 
+            margin-bottom: 15px; 
             font-weight: bold; 
             font-size: 18px;
         }
@@ -45,14 +66,14 @@
             display: flex; 
             flex-direction: column; 
             gap: 12px; 
-            margin-bottom: 25px; 
+            margin-bottom: 20px; 
         }
         .input-row {
             display: flex;
             gap: 10px;
             width: 100%;
         }
-        input[type="text"] { 
+        input[type="text"].plate-input { 
             flex: 1; 
             min-width: 0;
             padding: 15px; 
@@ -62,7 +83,7 @@
             text-transform: uppercase;
             text-align: center;
         }
-        input[type="text"]:focus {
+        input[type="text"].plate-input:focus {
             border-color: #1a73e8;
             outline: none;
         }
@@ -93,12 +114,28 @@
             font-weight: bold; 
         }
         button.btn-submit:active { background: #2d8c45; }
+
+        /* Nút cảnh báo của Quản lý */
+        .btn-warning {
+            width: 100%;
+            padding: 12px;
+            font-size: 14px;
+            background: #ffebee;
+            color: #d32f2f;
+            border: 1px dashed #d32f2f;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .btn-warning:active { background: #ffcdd2; }
         
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { text-align: left; padding: 10px 5px; border-bottom: 1px solid #eee; vertical-align: middle; }
         th { color: #5f6368; font-size: 13px; }
         .plate-text { font-size: 16px; font-weight: bold; color: #202124; }
-        .time-text { font-size: 13px; color: #5f6368; }
+        .time-text { font-size: 13px; color: #5f6368; font-weight: bold;}
+        .staff-text { font-size: 12px; color: #1a73e8; display: block; margin-top: 4px;}
         .btn-delete { 
             background: #ea4335; 
             color: white; 
@@ -113,6 +150,10 @@
             border-radius: 4px;
             border: 1px solid #ccc;
         }
+
+        /* Highlight dòng cảnh báo */
+        .row-warning { background-color: #ffcdd2 !important; }
+        .text-warning { color: #b71c1c !important; font-weight: bold; font-size: 14px;}
     </style>
 </head>
 <body>
@@ -120,6 +161,12 @@
 <div class="app-container">
     <h2>GHI NHẬN XE VÀO CA</h2>
     
+    <!-- Nhập tên nhân viên -->
+    <div class="staff-box">
+        <label>Ca của:</label>
+        <input type="text" id="staffName" placeholder="Tên nhân viên..." onkeyup="saveStaffName()" autocomplete="off">
+    </div>
+
     <div class="summary-box">
         <span>Tổng xe trong ca:</span>
         <span id="totalCars" style="color: #34a853; font-size: 22px;">0</span>
@@ -127,20 +174,22 @@
 
     <div class="input-group">
         <div class="input-row">
-            <input type="text" id="carPlate" placeholder="NHẬP SỐ..." autocomplete="off">
+            <input type="text" id="carPlate" class="plate-input" placeholder="NHẬP SỐ..." autocomplete="off">
             <button class="btn-camera" onclick="document.getElementById('cameraInput').click()">📷</button>
         </div>
         
         <button class="btn-submit" onclick="addTextCar()">XÁC NHẬN & LƯU</button>
-        
         <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;" onchange="handleCamera(event)">
     </div>
+
+    <!-- Nút dành riêng cho Quản lý -->
+    <button class="btn-warning" onclick="managerIssueWarning()">⚠️ QUẢN LÝ: GỬI CẢNH BÁO NHẮC NHỞ TRỄ</button>
 
     <table>
         <thead>
             <tr>
                 <th>XE / SỐ</th>
-                <th>GIỜ VÀO</th>
+                <th>GIỜ VÀO & NV</th>
                 <th>XÓA</th>
             </tr>
         </thead>
@@ -152,26 +201,55 @@
 <script>
     let logs = JSON.parse(localStorage.getItem('washLogs')) || [];
 
+    // Khôi phục tên nhân viên khi mở lại web
+    document.getElementById('staffName').value = localStorage.getItem('currentStaff') || '';
+
+    function saveStaffName() {
+        localStorage.setItem('currentStaff', document.getElementById('staffName').value.trim());
+    }
+
+    function getStaffName() {
+        let name = document.getElementById('staffName').value.trim();
+        if (!name) return "Chưa điền tên";
+        return name;
+    }
+
     function renderTable() {
         const tbody = document.getElementById('logTableBody');
         tbody.innerHTML = '';
-        document.getElementById('totalCars').innerText = logs.length;
+        
+        // Chỉ đếm số xe thực tế, không đếm các dòng cảnh báo của quản lý
+        let actualCarCount = logs.filter(log => !log.isWarning).length;
+        document.getElementById('totalCars').innerText = actualCarCount;
 
         logs.forEach((log, index) => {
             const tr = document.createElement('tr');
             
-            let displayContent = '';
-            if (log.photo) {
-                displayContent = `<img src="${log.photo}" class="car-photo" alt="Xe">`;
+            // Nếu là dòng cảnh báo của quản lý
+            if (log.isWarning) {
+                tr.className = 'row-warning';
+                tr.innerHTML = `
+                    <td colspan="2" class="text-warning">⚠️ QUẢN LÝ NHẮC: CHƯA CẬP NHẬT XE!<br><span class="time-text">${log.time}</span></td>
+                    <td><button class="btn-delete" onclick="deleteLog(${index})">Xóa</button></td>
+                `;
             } else {
-                displayContent = `<span class="plate-text">${log.plate}</span>`;
-            }
+                // Nếu là dòng ghi nhận xe bình thường
+                let displayContent = '';
+                if (log.photo) {
+                    displayContent = `<img src="${log.photo}" class="car-photo" alt="Xe">`;
+                } else {
+                    displayContent = `<span class="plate-text">${log.plate}</span>`;
+                }
 
-            tr.innerHTML = `
-                <td>${displayContent}</td>
-                <td class="time-text">${log.time}</td>
-                <td><button class="btn-delete" onclick="deleteLog(${index})">Xóa</button></td>
-            `;
+                tr.innerHTML = `
+                    <td>${displayContent}</td>
+                    <td>
+                        <span class="time-text">${log.time}</span>
+                        <span class="staff-text">👤 NV: ${log.staff}</span>
+                    </td>
+                    <td><button class="btn-delete" onclick="deleteLog(${index})">Xóa</button></td>
+                `;
+            }
             tbody.appendChild(tr);
         });
     }
@@ -193,7 +271,7 @@
             return;
         }
 
-        logs.unshift({ plate: plate, time: getCurrentTime(), photo: null });
+        logs.unshift({ plate: plate, time: getCurrentTime(), photo: null, staff: getStaffName() });
         localStorage.setItem('washLogs', JSON.stringify(logs));
         
         plateInput.value = '';
@@ -219,7 +297,7 @@
                 
                 const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
 
-                logs.unshift({ plate: 'Ảnh', time: getCurrentTime(), photo: dataUrl });
+                logs.unshift({ plate: 'Ảnh', time: getCurrentTime(), photo: dataUrl, staff: getStaffName() });
                 localStorage.setItem('washLogs', JSON.stringify(logs));
                 
                 renderTable();
@@ -229,8 +307,18 @@
         reader.readAsDataURL(file);
     }
 
+    function managerIssueWarning() {
+        const password = prompt('Mật khẩu quản lý để phát cảnh báo:');
+        if (password === '666919') {
+            logs.unshift({ isWarning: true, time: getCurrentTime(), staff: 'QUẢN LÝ' });
+            localStorage.setItem('washLogs', JSON.stringify(logs));
+            renderTable();
+        } else if (password !== null) {
+            alert('Sai mật khẩu quản lý!');
+        }
+    }
+
     function deleteLog(index) {
-        // Đã sửa lỗi lộ mật khẩu ở đây
         const password = prompt('Vui lòng nhập mật khẩu quản lý để xóa:');
         
         if (password === null) return; 
@@ -239,7 +327,6 @@
             logs.splice(index, 1);
             localStorage.setItem('washLogs', JSON.stringify(logs));
             renderTable();
-            alert('Đã xóa dữ liệu thành công!');
         } else {
             alert('Mật khẩu sai! Không thể xóa bản ghi.');
         }
