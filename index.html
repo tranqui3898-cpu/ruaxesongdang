@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Khai Báo Rửa Xe</title>
     <style>
+        /* Ép tỷ lệ, chống tràn viền */
         * { box-sizing: border-box; }
         
         body { 
             font-family: Arial, sans-serif; 
-            background-color: #f0f2f5; 
+            background-color: #18191a; /* Nền đen Dark Mode */
+            color: #e4e6eb; /* Chữ xám sáng */
             margin: 0; 
             padding: 15px; 
         }
@@ -17,48 +19,52 @@
             max-width: 500px; 
             width: 100%;
             margin: 0 auto; 
-            background: #ffffff; 
+            background: #242526; /* Nền khối xám đậm */
             padding: 20px; 
             border-radius: 12px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5); 
         }
         h2 { 
             text-align: center; 
-            color: #1a73e8; 
+            color: #3399ff; 
             margin-top: 0;
-            font-size: 22px;
+            font-size: 24px;
         }
-        
-        /* Khu vực khai báo nhân viên */
-        .staff-box {
-            background: #fff3e0;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            border: 1px solid #ffcc80;
+
+        /* Ô nhập Tên Nhân Viên - Đã fix lỗi giao diện */
+        .employee-box {
             display: flex;
             align-items: center;
-            gap: 10px;
+            background-color: #2a1c0d; 
+            border: 1px solid #cc8800;
+            border-radius: 8px;
+            padding: 5px 15px;
+            margin-bottom: 20px;
         }
-        .staff-box label { font-weight: bold; color: #e65100; font-size: 15px; white-space: nowrap;}
-        .staff-box input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ffcc80;
-            border-radius: 6px;
-            font-size: 16px;
+        .employee-box .emp-label {
+            color: #ff9900;
             font-weight: bold;
-            color: #d84315;
-            text-align: center;
+            margin-right: 15px;
+            white-space: nowrap;
         }
+        .employee-box input {
+            flex: 1;
+            min-width: 0;
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            font-size: 16px;
+            padding: 10px 0;
+        }
+        .employee-box input:focus { outline: none; }
 
         .summary-box { 
             display: flex; 
             justify-content: space-between; 
-            background: #e8f0fe; 
+            background: #1c1e21; 
             padding: 15px; 
             border-radius: 8px; 
-            margin-bottom: 15px; 
+            margin-bottom: 20px; 
             font-weight: bold; 
             font-size: 18px;
         }
@@ -78,13 +84,15 @@
             min-width: 0;
             padding: 15px; 
             font-size: 18px; 
-            border: 2px solid #ccc; 
+            background: #3a3b3c;
+            color: white;
+            border: 1px solid #555; 
             border-radius: 8px; 
             text-transform: uppercase;
             text-align: center;
         }
         input[type="text"].plate-input:focus {
-            border-color: #1a73e8;
+            border-color: #3399ff;
             outline: none;
         }
         .btn-camera {
@@ -104,7 +112,7 @@
         
         button.btn-submit { 
             width: 100%;
-            padding: 18px; 
+            padding: 15px; 
             font-size: 18px; 
             background: #34a853; 
             color: white; 
@@ -115,27 +123,34 @@
         }
         button.btn-submit:active { background: #2d8c45; }
 
-        /* Nút cảnh báo của Quản lý */
-        .btn-warning {
+        /* Nút Cảnh Báo Của Quản Lý */
+        button.btn-warning-trigger {
             width: 100%;
-            padding: 12px;
-            font-size: 14px;
-            background: #ffebee;
-            color: #d32f2f;
-            border: 1px dashed #d32f2f;
+            padding: 15px;
+            font-size: 15px;
+            background: #4a0000;
+            color: #ff4d4d;
+            border: 2px dashed #ff4d4d;
             border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
-        .btn-warning:active { background: #ffcdd2; }
+        button.btn-warning-trigger:active { background: #660000; }
         
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { text-align: left; padding: 10px 5px; border-bottom: 1px solid #eee; vertical-align: middle; }
-        th { color: #5f6368; font-size: 13px; }
-        .plate-text { font-size: 16px; font-weight: bold; color: #202124; }
-        .time-text { font-size: 13px; color: #5f6368; font-weight: bold;}
-        .staff-text { font-size: 12px; color: #1a73e8; display: block; margin-top: 4px;}
+        th, td { text-align: left; padding: 12px 5px; border-bottom: 1px solid #3a3b3c; vertical-align: middle; }
+        th { color: #b0b3b8; font-size: 13px; }
+        
+        /* Hiển thị dòng Log thường */
+        .plate-text { font-size: 16px; font-weight: bold; color: #ffffff; }
+        .time-text { font-size: 13px; color: #b0b3b8; margin-bottom: 4px;}
+        .emp-text { font-size: 12px; color: #3399ff; }
+        
+        /* Hiển thị dòng Cảnh báo */
+        .log-warning-row { background-color: #330000 !important; }
+        .warning-text { font-size: 14px; font-weight: bold; color: #ff4d4d; }
+
         .btn-delete { 
             background: #ea4335; 
             color: white; 
@@ -148,12 +163,8 @@
         .car-photo {
             width: 70px;
             border-radius: 4px;
-            border: 1px solid #ccc;
+            border: 1px solid #555;
         }
-
-        /* Highlight dòng cảnh báo */
-        .row-warning { background-color: #ffcdd2 !important; }
-        .text-warning { color: #b71c1c !important; font-weight: bold; font-size: 14px;}
     </style>
 </head>
 <body>
@@ -161,10 +172,10 @@
 <div class="app-container">
     <h2>GHI NHẬN XE VÀO CA</h2>
     
-    <!-- Nhập tên nhân viên -->
-    <div class="staff-box">
-        <label>Ca của:</label>
-        <input type="text" id="staffName" placeholder="Tên nhân viên..." onkeyup="saveStaffName()" autocomplete="off">
+    <!-- Khung nhập tên nhân viên đã sửa lỗi CSS -->
+    <div class="employee-box">
+        <span class="emp-label">Ca của:</span>
+        <input type="text" id="empName" placeholder="Tên nhân viên..." autocomplete="off">
     </div>
 
     <div class="summary-box">
@@ -182,8 +193,8 @@
         <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;" onchange="handleCamera(event)">
     </div>
 
-    <!-- Nút dành riêng cho Quản lý -->
-    <button class="btn-warning" onclick="managerIssueWarning()">⚠️ QUẢN LÝ: GỬI CẢNH BÁO NHẮC NHỞ TRỄ</button>
+    <!-- Nút bắn cảnh báo đỏ của quản lý -->
+    <button class="btn-warning-trigger" onclick="addManagerWarning()">⚠️ QUẢN LÝ: GỬI CẢNH BÁO NHẮC NHỞ TRỄ</button>
 
     <table>
         <thead>
@@ -194,6 +205,7 @@
             </tr>
         </thead>
         <tbody id="logTableBody">
+            <!-- Dữ liệu render tại đây -->
         </tbody>
     </table>
 </div>
@@ -201,51 +213,45 @@
 <script>
     let logs = JSON.parse(localStorage.getItem('washLogs')) || [];
 
-    // Khôi phục tên nhân viên khi mở lại web
-    document.getElementById('staffName').value = localStorage.getItem('currentStaff') || '';
-
-    function saveStaffName() {
-        localStorage.setItem('currentStaff', document.getElementById('staffName').value.trim());
-    }
-
-    function getStaffName() {
-        let name = document.getElementById('staffName').value.trim();
-        if (!name) return "Chưa điền tên";
-        return name;
+    // Lấy tên nhân viên, nếu trống thì để "Chưa nhập tên"
+    function getEmployeeName() {
+        const name = document.getElementById('empName').value.trim();
+        return name ? name : "Chưa nhập tên";
     }
 
     function renderTable() {
         const tbody = document.getElementById('logTableBody');
         tbody.innerHTML = '';
         
-        // Chỉ đếm số xe thực tế, không đếm các dòng cảnh báo của quản lý
-        let actualCarCount = logs.filter(log => !log.isWarning).length;
-        document.getElementById('totalCars').innerText = actualCarCount;
+        // Chỉ đếm số lượng xe thực tế, không đếm dòng cảnh báo của quản lý
+        const actualCars = logs.filter(log => log.type !== 'warning').length;
+        document.getElementById('totalCars').innerText = actualCars;
 
         logs.forEach((log, index) => {
             const tr = document.createElement('tr');
             
-            // Nếu là dòng cảnh báo của quản lý
-            if (log.isWarning) {
-                tr.className = 'row-warning';
+            // Xử lý nếu là dòng cảnh báo đỏ
+            if (log.type === 'warning') {
+                tr.className = 'log-warning-row';
                 tr.innerHTML = `
-                    <td colspan="2" class="text-warning">⚠️ QUẢN LÝ NHẮC: CHƯA CẬP NHẬT XE!<br><span class="time-text">${log.time}</span></td>
+                    <td colspan="2">
+                        <div class="warning-text">${log.plate}</div>
+                        <div class="time-text" style="color: #ff9999; margin-top: 4px;">${log.time}</div>
+                    </td>
                     <td><button class="btn-delete" onclick="deleteLog(${index})">Xóa</button></td>
                 `;
-            } else {
-                // Nếu là dòng ghi nhận xe bình thường
-                let displayContent = '';
-                if (log.photo) {
-                    displayContent = `<img src="${log.photo}" class="car-photo" alt="Xe">`;
-                } else {
-                    displayContent = `<span class="plate-text">${log.plate}</span>`;
-                }
+            } 
+            // Xử lý xe bình thường (chữ hoặc ảnh)
+            else {
+                let displayContent = log.photo 
+                    ? `<img src="${log.photo}" class="car-photo" alt="Xe">` 
+                    : `<span class="plate-text">${log.plate}</span>`;
 
                 tr.innerHTML = `
                     <td>${displayContent}</td>
                     <td>
-                        <span class="time-text">${log.time}</span>
-                        <span class="staff-text">👤 NV: ${log.staff}</span>
+                        <div class="time-text">${log.time}</div>
+                        <div class="emp-text">👤 NV: ${log.emp}</div>
                     </td>
                     <td><button class="btn-delete" onclick="deleteLog(${index})">Xóa</button></td>
                 `;
@@ -262,6 +268,7 @@
                (now.getMonth() + 1).toString().padStart(2, '0');
     }
 
+    // Khi NV nhập biển số bằng tay
     function addTextCar() {
         const plateInput = document.getElementById('carPlate');
         const plate = plateInput.value.trim().toUpperCase();
@@ -271,13 +278,20 @@
             return;
         }
 
-        logs.unshift({ plate: plate, time: getCurrentTime(), photo: null, staff: getStaffName() });
+        logs.unshift({ 
+            type: 'normal', 
+            plate: plate, 
+            time: getCurrentTime(), 
+            photo: null,
+            emp: getEmployeeName() 
+        });
         localStorage.setItem('washLogs', JSON.stringify(logs));
         
         plateInput.value = '';
         renderTable();
     }
 
+    // Khi NV chụp ảnh
     function handleCamera(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -294,10 +308,15 @@
                 
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                
                 const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
 
-                logs.unshift({ plate: 'Ảnh', time: getCurrentTime(), photo: dataUrl, staff: getStaffName() });
+                logs.unshift({ 
+                    type: 'normal', 
+                    plate: 'Ảnh chụp', 
+                    time: getCurrentTime(), 
+                    photo: dataUrl,
+                    emp: getEmployeeName()
+                });
                 localStorage.setItem('washLogs', JSON.stringify(logs));
                 
                 renderTable();
@@ -307,20 +326,21 @@
         reader.readAsDataURL(file);
     }
 
-    function managerIssueWarning() {
-        const password = prompt('Mật khẩu quản lý để phát cảnh báo:');
-        if (password === '666919') {
-            logs.unshift({ isWarning: true, time: getCurrentTime(), staff: 'QUẢN LÝ' });
-            localStorage.setItem('washLogs', JSON.stringify(logs));
-            renderTable();
-        } else if (password !== null) {
-            alert('Sai mật khẩu quản lý!');
-        }
+    // Quản lý bấm nút gửi cảnh báo đỏ
+    function addManagerWarning() {
+        logs.unshift({ 
+            type: 'warning', 
+            plate: '⚠️ QUẢN LÝ NHẮC: CHƯA CẬP NHẬT XE!', 
+            time: getCurrentTime(), 
+            photo: null,
+            emp: '' 
+        });
+        localStorage.setItem('washLogs', JSON.stringify(logs));
+        renderTable();
     }
 
     function deleteLog(index) {
         const password = prompt('Vui lòng nhập mật khẩu quản lý để xóa:');
-        
         if (password === null) return; 
 
         if (password === '666919') {
