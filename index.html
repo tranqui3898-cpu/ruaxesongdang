@@ -2,395 +2,446 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Quy Trình Nhập Xăng Dầu 5 Bước</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khai Báo Rửa Xe</title>
+    
+    <!-- Cấu hình Web App độc lập -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Rửa Xe">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3204/3204095.png">
+
+    <!-- THƯ VIỆN FIREBASE -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
     <style>
-        :root {
-            --bg-color: #f4f6f9;
-            --card-bg: #ffffff;
-            --primary: #0056b3;
-            --success: #28a745;
-            --danger: #dc3545;
-            --warning: #ffc107;
-            --text-main: #333;
-            --text-muted: #6c757d;
-            --border: #dee2e6;
+        * { box-sizing: border-box; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background-color: #18191a; 
+            color: #e4e6eb; 
+            margin: 0; 
+            padding: 15px; 
         }
+        .app-container { 
+            max-width: 500px; 
+            width: 100%;
+            margin: 0 auto; 
+            background: #242526; 
+            padding: 20px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5); 
+        }
+        h2 { 
+            text-align: center; 
+            color: #3399ff; 
+            margin-top: 0;
+            font-size: 24px;
+        }
+        .employee-box {
+            display: flex;
+            align-items: center;
+            background-color: #2a1c0d; 
+            border: 1px solid #cc8800;
+            border-radius: 8px;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+        .employee-box:active { background-color: #3d2a14; }
+        .employee-box .emp-label {
+            color: #ff9900;
+            font-weight: bold;
+            margin-right: 15px;
+            white-space: nowrap;
+        }
+        #empNameDisplay {
+            flex: 1;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: bold;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .emp-hint { font-size: 12px; color: #cc8800; }
+        .summary-box { 
+            display: flex; 
+            justify-content: space-between; 
+            background: #1c1e21; 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin-bottom: 20px; 
+            font-weight: bold; 
+            font-size: 18px;
+        }
+        .input-group { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
+            margin-bottom: 20px; 
+        }
+        .input-row { display: flex; gap: 10px; width: 100%; }
+        input[type="text"].plate-input { 
+            flex: 1; 
+            min-width: 0;
+            padding: 15px; 
+            font-size: 18px; 
+            background: #3a3b3c;
+            color: white;
+            border: 1px solid #555; 
+            border-radius: 8px; 
+            text-transform: uppercase;
+            text-align: center;
+        }
+        input[type="text"].plate-input:focus {
+            border-color: #3399ff;
+            outline: none;
+        }
+        .btn-camera {
+            width: 60px; 
+            flex-shrink: 0;
+            font-size: 24px;
+            background: #fbbc05;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-camera:active { background: #e0a800; }
+        
+        button.btn-submit { 
+            width: 100%;
+            padding: 15px; 
+            font-size: 18px; 
+            background: #34a853; 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: bold; 
+        }
+        button.btn-submit:active { background: #2d8c45; }
+        
+        button.btn-warning-trigger {
+            width: 100%;
+            padding: 15px;
+            font-size: 15px;
+            background: #4a0000;
+            color: #ff4d4d;
+            border: 2px dashed #ff4d4d;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        button.btn-warning-trigger:active { background: #660000; }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.5; padding: 10px; display: flex; justify-content: center; }
+        button.btn-reset {
+            width: 100%;
+            padding: 15px;
+            font-size: 15px;
+            background: #b30000;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        button.btn-reset:active { background: #800000; }
         
-        #app { width: 100%; max-width: 500px; background: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; min-height: 95vh; }
-        
-        header { background: #1a1a2e; color: white; padding: 15px; text-align: center; }
-        header h2 { font-size: 1.2rem; margin-bottom: 5px; color: #4da8da; }
-        
-        .step-container { padding: 15px; display: none; flex: 1; }
-        .step-container.active { display: block; }
-        .step-title { font-weight: bold; font-size: 1.1rem; color: #1a1a2e; margin-bottom: 15px; border-bottom: 2px solid var(--primary); padding-bottom: 5px; text-transform: uppercase; }
-        
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; color: white; }
-        .btn-primary { background-color: var(--primary); }
-        .btn-success { background-color: var(--success); }
-        .btn-warning { background-color: var(--warning); color: #333; }
-        .btn-outline { background-color: transparent; border: 1px solid var(--border); color: var(--text-main); }
-        .btn:active { opacity: 0.8; }
-
-        .camera-box { border: 2px dashed var(--primary); background: #e9f2fb; border-radius: 8px; padding: 25px 20px; text-align: center; margin-bottom: 15px; cursor: pointer; }
-        
-        .form-group { margin-bottom: 12px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9rem; }
-        .form-control { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
-        
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; text-align: center; }
-        .grid-5 input { padding: 8px 5px; text-align: center; font-size: 0.9rem; border: 1px solid #ccc; border-radius: 4px; width: 100%; }
-        .grid-5 label { font-size: 0.8rem; margin-bottom: 2px; color: var(--text-muted); }
-
-        .image-preview { width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 15px; display: none; background: #eee; }
-        
-        .alert { padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 0.9rem; font-weight: bold; display: none; line-height: 1.4; }
-        
-        /* Bảng hiển thị tóm tắt */
-        .summary-box { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 12px; margin-bottom: 15px; font-size: 0.9rem; }
-        .summary-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #ccc; padding: 6px 0; }
-        .summary-row:last-child { border-bottom: none; }
-        .highlight { color: var(--primary); font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { text-align: left; padding: 12px 5px; border-bottom: 1px solid #3a3b3c; vertical-align: middle; }
+        th { color: #b0b3b8; font-size: 13px; }
+        .plate-text { font-size: 16px; font-weight: bold; color: #ffffff; }
+        .time-text { font-size: 13px; color: #b0b3b8; margin-bottom: 4px;}
+        .emp-text { font-size: 12px; color: #3399ff; }
+        .log-warning-row { background-color: #330000 !important; }
+        .warning-text { font-size: 14px; font-weight: bold; color: #ff4d4d; }
+        .btn-delete { 
+            background: #ea4335; 
+            color: white; 
+            border: none; 
+            padding: 8px 10px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-size: 13px;
+        }
+        .car-photo { width: 70px; border-radius: 4px; border: 1px solid #555; }
     </style>
 </head>
 <body>
 
-<div id="app">
-    <header>
-        <h2>QUY TRÌNH NHẬP HÀNG 5 BƯỚC</h2>
-        <div style="font-size: 0.85rem;">Ca trực: <strong id="currentTime"></strong></div>
-    </header>
-
-    <!-- BƯỚC 1: CAMERA -->
-    <div id="step1" class="step-container active">
-        <div class="step-title">Bước 1: Chụp chứng từ</div>
-        <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;">
-        
-        <div class="camera-box" onclick="document.getElementById('cameraInput').click()">
-            <div style="font-size: 2.5rem; margin-bottom: 5px;">📸</div>
-            <h3 style="color: var(--primary); font-size: 1.1rem;">CHỤP PHIẾU XUẤT KHO</h3>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">Lưu lại chứng từ để đối chiếu</p>
-        </div>
+<div class="app-container">
+    <h2>GHI NHẬN XE VÀO CA</h2>
+    
+    <div class="employee-box" onclick="changeEmpName()">
+        <span class="emp-label">Ca của:</span>
+        <span id="empNameDisplay">CHƯA NHẬP TÊN</span>
+        <span class="emp-hint">✏️ Đổi</span>
     </div>
 
-    <!-- BƯỚC 2: NHẬP SỐ LIỆU CHỨNG TỪ -->
-    <div id="step2" class="step-container">
-        <div class="step-title">Bước 2: Ghi nhận chứng từ</div>
-        <img id="imgPreview" class="image-preview" src="" alt="Phiếu đã chụp">
-        
-        <div class="grid-2">
-            <div class="form-group">
-                <label>Số phiếu:</label>
-                <input type="text" id="s2_soPhieu" class="form-control" placeholder="VD: a,b,c...">
-            </div>
-            <div class="form-group">
-                <label>Xăng/Dầu:</label>
-                <input type="text" id="s2_loaiHang" class="form-control" placeholder="VD: Xăng E10">
-            </div>
-        </div>
-        
-        <div class="grid-2">
-            <div class="form-group">
-                <label>Số lượng (Lít):</label>
-                <input type="number" id="s2_soLuong" class="form-control" placeholder="VD: 20000">
-            </div>
-            <div class="form-group">
-                <label>Nhiệt độ kho (to):</label>
-                <input type="number" id="s2_nhietDo" class="form-control" step="0.1" placeholder="VD: 30.5">
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label>Tầm mức kho (H1 - H5):</label>
-            <div class="grid-5">
-                <div><label>H1</label><input type="number" id="s2_h1" placeholder="+5"></div>
-                <div><label>H2</label><input type="number" id="s2_h2" placeholder="0"></div>
-                <div><label>H3</label><input type="number" id="s2_h3" placeholder="0"></div>
-                <div><label>H4</label><input type="number" id="s2_h4" placeholder="+5"></div>
-                <div><label>H5</label><input type="number" id="s2_h5" placeholder="0"></div>
-            </div>
-        </div>
-        
-        <button class="btn btn-primary" onclick="goToStep3()">TIẾP TỤC BƯỚC 3 ➡️</button>
-        <button class="btn btn-outline" onclick="goToStep1()">Chụp lại ảnh</button>
+    <div class="summary-box">
+        <span>Tổng xe trong ca:</span>
+        <span id="totalCars" style="color: #34a853; font-size: 22px;">0</span>
     </div>
 
-    <!-- BƯỚC 3: NHẬP SỐ LIỆU THỰC TẾ TRÊN XE -->
-    <div id="step3" class="step-container">
-        <div class="step-title">Bước 3: Thực tế tại trạm (Xe bồn)</div>
+    <div class="input-group">
+        <div class="input-row">
+            <input type="text" id="carPlate" class="plate-input" placeholder="NHẬP SỐ HOẶC LỜI NHẮC..." autocomplete="off">
+            <button class="btn-camera" onclick="handleCameraClick()">📷</button>
+        </div>
         
-        <div class="summary-box" style="background: #fff3cd; border-color: #ffeeba;">
-            <div class="summary-row"><span>Nhiệt độ kho xuất:</span> <span class="highlight" id="lbl_khoTemp"></span></div>
-        </div>
-
-        <div class="form-group">
-            <label>🌡️ Nhiệt độ nhập thực tế (°C):</label>
-            <input type="number" id="s3_nhietDo" class="form-control" step="0.1" placeholder="VD: 30.5">
-        </div>
-
-        <div class="form-group">
-            <label>📏 Tầm mức nhập thực tế (H1 - H5):</label>
-            <div class="grid-5">
-                <div><label>H1</label><input type="number" id="s3_h1"></div>
-                <div><label>H2</label><input type="number" id="s3_h2"></div>
-                <div><label>H3</label><input type="number" id="s3_h3"></div>
-                <div><label>H4</label><input type="number" id="s3_h4"></div>
-                <div><label>H5</label><input type="number" id="s3_h5"></div>
-            </div>
-        </div>
-
-        <button class="btn btn-primary" onclick="goToStep4()">TIẾP TỤC BƯỚC 4 ➡️</button>
-        <button class="btn btn-outline" onclick="goToStep(2)">Quay lại</button>
+        <button class="btn-submit" onclick="addTextCar()">XÁC NHẬN & LƯU</button>
+        <input type="file" id="cameraInput" style="display: none;" onchange="handleCamera(event)">
     </div>
 
-    <!-- BƯỚC 4: SỐ ĐO BỒN TRƯỚC NHẬP -->
-    <div id="step4" class="step-container">
-        <div class="step-title">Bước 4: Số đo bồn (TRƯỚC khi nhập)</div>
-        
-        <div class="grid-2">
-            <div class="form-group">
-                <label>Bồn 1:</label>
-                <input type="number" id="s4_bon1" class="form-control" value="0">
-            </div>
-            <div class="form-group">
-                <label>Bồn 2:</label>
-                <input type="number" id="s4_bon2" class="form-control" value="0">
-            </div>
-            <div class="form-group">
-                <label>Bồn 3:</label>
-                <input type="number" id="s4_bon3" class="form-control" value="0">
-            </div>
-            <div class="form-group">
-                <label>Bồn Dầu:</label>
-                <input type="number" id="s4_bonDau" class="form-control" value="0">
-            </div>
-        </div>
+    <button id="warningBtn" class="btn-warning-trigger" onclick="addManagerWarning()">⚠️ LƯU CẢNH BÁO (Lấy từ ô nhập)</button>
+    <button class="btn-reset" onclick="resetShift()">🔄 LÀM MỚI CA TRỰC (XÓA TẤT CẢ)</button>
 
-        <button class="btn btn-primary" onclick="goToStep5()">TIẾP TỤC BƯỚC 5 ➡️</button>
-        <button class="btn btn-outline" onclick="goToStep(3)">Quay lại</button>
-    </div>
-
-    <!-- BƯỚC 5: SỐ ĐO BỒN SAU NHẬP & KẾT QUẢ -->
-    <div id="step5" class="step-container">
-        <div class="step-title">Bước 5: Số đo bồn (SAU khi nhập)</div>
-        
-        <div class="grid-2">
-            <div class="form-group">
-                <label>Bồn 1:</label>
-                <input type="number" id="s5_bon1" class="form-control" value="0" oninput="calculateFinalResult()">
-            </div>
-            <div class="form-group">
-                <label>Bồn 2:</label>
-                <input type="number" id="s5_bon2" class="form-control" value="0" oninput="calculateFinalResult()">
-            </div>
-            <div class="form-group">
-                <label>Bồn 3:</label>
-                <input type="number" id="s5_bon3" class="form-control" value="0" oninput="calculateFinalResult()">
-            </div>
-            <div class="form-group">
-                <label>Bồn Dầu:</label>
-                <input type="number" id="s5_bonDau" class="form-control" value="0" oninput="calculateFinalResult()">
-            </div>
-        </div>
-
-        <div id="finalResultCard" style="display: none;">
-            <div class="summary-box">
-                <div class="summary-row"><span>Chứng từ (Lít):</span> <span class="highlight" id="res_chungTu"></span></div>
-                <div class="summary-row"><span>Thực nhập bồn (Lít):</span> <span class="highlight" id="res_thucNhap"></span></div>
-                <div class="summary-row"><span>Chênh lệch:</span> <span class="highlight" id="res_chenhLech"></span></div>
-            </div>
-            
-            <div class="alert" id="logicAlert"></div>
-            
-            <button class="btn btn-success" style="margin-top: 10px;" onclick="saveAndReset()">
-                💾 LƯU BÁO CÁO: ĐÚNG CHẤT LƯỢNG - ĐỦ SỐ LƯỢNG
-            </button>
-        </div>
-
-        <button class="btn btn-outline" style="margin-top: 15px;" onclick="goToStep(4)">Quay lại</button>
-    </div>
-
+    <table>
+        <thead>
+            <tr>
+                <th>XE / SỐ</th>
+                <th>GIỜ VÀO & NV</th>
+                <th>XÓA</th>
+            </tr>
+        </thead>
+        <tbody id="logTableBody">
+        </tbody>
+    </table>
 </div>
 
 <script>
-    // Constants & Variables
-    let data = {};
+    const firebaseConfig = {
+      apiKey: "AIzaSyBA_tZW3w7FGgtNpVlmqmsDIm75CvkOrNw",
+      authDomain: "rua-xe-d0342.firebaseapp.com",
+      projectId: "rua-xe-d0342",
+      storageBucket: "rua-xe-d0342.firebasestorage.app",
+      messagingSenderId: "194295967420",
+      appId: "1:194295967420:web:dc50f7f17c2696099feab9",
+      measurementId: "G-HQNXWSD2VK"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-    setInterval(() => {
+    // Tự động tính mật khẩu theo ngày hiện tại: Ngày + Tháng
+    function getDailyPassword() {
         const now = new Date();
-        document.getElementById('currentTime').innerText = now.toLocaleTimeString('vi-VN') + ' - ' + now.toLocaleDateString('vi-VN');
-    }, 1000);
-
-    function hideAllSteps() {
-        document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
+        const day = now.getDate();       // Lấy ngày (vd: 9)
+        const month = now.getMonth() + 1; // Lấy tháng (vd: 8)
+        return (day + month).toString();  // Cộng lại thành chuỗi (vd: "17")
     }
 
-    function goToStep(stepNum) {
-        hideAllSteps();
-        document.getElementById('step' + stepNum).classList.add('active');
-    }
+    let logs = [];
+    let currentEmpName = localStorage.getItem('washEmpName') || "CHƯA NHẬP TÊN";
+    document.getElementById('empNameDisplay').innerText = currentEmpName;
 
-    // BƯỚC 1 -> BƯỚC 2
-    function goToStep1() {
-        goToStep(1);
-        document.getElementById('cameraInput').value = '';
-    }
-
-    document.getElementById('cameraInput').addEventListener('change', function(e) {
-        if(e.target.files && e.target.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                document.getElementById('imgPreview').src = event.target.result;
-                document.getElementById('imgPreview').style.display = 'block';
-                goToStep(2);
-            }
-            reader.readAsDataURL(e.target.files[0]);
+    function updateRoleUI() {
+        const warningBtn = document.getElementById('warningBtn');
+        if (currentEmpName === 'ADMIN') {
+            warningBtn.style.display = 'none'; 
+        } else {
+            warningBtn.style.display = 'block'; 
         }
+    }
+    updateRoleUI();
+
+    function changeEmpName() {
+        const pwd = prompt('Yêu cầu nhập mật khẩu để thay đổi ca trực:');
+        if (pwd === null) return; 
+
+        if (pwd === getDailyPassword()) {
+            const newName = prompt('Nhập tên nhân viên tiếp nhận ca:');
+            if (newName !== null && newName.trim() !== '') {
+                currentEmpName = newName.trim().toUpperCase();
+                localStorage.setItem('washEmpName', currentEmpName); 
+                document.getElementById('empNameDisplay').innerText = currentEmpName;
+                updateRoleUI(); 
+            }
+        } else {
+            alert('Mật khẩu sai! Không thể đổi ca.');
+        }
+    }
+
+    function getCurrentTime() {
+        const now = new Date();
+        return now.getHours().toString().padStart(2, '0') + ':' + 
+               now.getMinutes().toString().padStart(2, '0') + ' - ' + 
+               now.getDate().toString().padStart(2, '0') + '/' + 
+               (now.getMonth() + 1).toString().padStart(2, '0');
+    }
+
+    function handleCameraClick() {
+        const fileInput = document.getElementById('cameraInput');
+        if (currentEmpName === 'ADMIN') {
+            fileInput.removeAttribute('capture');
+        } else {
+            fileInput.setAttribute('capture', 'environment');
+        }
+        fileInput.click();
+    }
+
+    db.collection("washLogs").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
+        const tbody = document.getElementById('logTableBody');
+        tbody.innerHTML = '';
+        logs = [];
+        
+        snapshot.forEach((doc) => {
+            logs.push({ id: doc.id, ...doc.data() });
+        });
+
+        const actualCars = logs.filter(log => log.type !== 'warning').length;
+        document.getElementById('totalCars').innerText = actualCars;
+
+        logs.forEach((log, index) => {
+            const tr = document.createElement('tr');
+            
+            if (log.type === 'warning') {
+                tr.className = 'log-warning-row';
+                tr.innerHTML = `
+                    <td colspan="2">
+                        <div class="warning-text">${log.plate}</div>
+                        <div class="time-text" style="color: #ff9999; margin-top: 4px;">${log.time}</div>
+                    </td>
+                    <td><button class="btn-delete" onclick="deleteLog(${index})">Xóa</button></td>
+                `;
+            } else {
+                let displayContent = log.photo 
+                    ? `<img src="${log.photo}" class="car-photo" alt="Xe">` 
+                    : `<span class="plate-text">${log.plate}</span>`;
+
+                tr.innerHTML = `
+                    <td>${displayContent}</td>
+                    <td>
+                        <div class="time-text">${log.time}</div>
+                        <div class="emp-text">👤 NV: ${log.emp}</div>
+                    </td>
+                    <td><button class="btn-delete" onclick="deleteLog(${index})">Xóa</button></td>
+                `;
+            }
+            tbody.appendChild(tr);
+        });
     });
 
-    // Lấy giá trị số từ input, rỗng = 0
-    function getNum(id) {
-        const val = parseFloat(document.getElementById(id).value);
-        return isNaN(val) ? 0 : val;
-    }
-
-    // BƯỚC 2 -> BƯỚC 3
-    function goToStep3() {
-        const soLuong = document.getElementById('s2_soLuong').value;
-        const nhietDo = document.getElementById('s2_nhietDo').value;
-
-        if(!soLuong || !nhietDo) {
-            alert("Vui lòng nhập Số lượng và Nhiệt độ kho!");
+    function addTextCar() {
+        const plateInput = document.getElementById('carPlate');
+        const plate = plateInput.value.trim().toUpperCase();
+        
+        if (!plate) {
+            alert('Vui lòng nhập biển số xe hoặc bấm nút 📷 để chụp/chọn ảnh!');
             return;
         }
 
-        document.getElementById('lbl_khoTemp').innerText = nhietDo + ' °C';
-        goToStep(3);
+        db.collection("washLogs").add({
+            type: 'normal',
+            plate: plate,
+            time: getCurrentTime(),
+            photo: null,
+            emp: currentEmpName,
+            createdAt: Date.now()
+        });
+        
+        plateInput.value = '';
     }
 
-    // BƯỚC 3 -> BƯỚC 4
-    function goToStep4() {
-        const nhietDoNhap = document.getElementById('s3_nhietDo').value;
-        if(!nhietDoNhap) {
-            alert("Vui lòng nhập Nhiệt độ thực tế tại trạm!");
+    function handleCamera(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 150;
+                const scaleSize = MAX_WIDTH / img.width;
+                canvas.width = MAX_WIDTH;
+                canvas.height = img.height * scaleSize;
+                
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+
+                db.collection("washLogs").add({
+                    type: 'normal',
+                    plate: 'Ảnh chụp',
+                    time: getCurrentTime(),
+                    photo: dataUrl,
+                    emp: currentEmpName,
+                    createdAt: Date.now()
+                });
+            }
+            img.src = e.target.result;
+        }
+        reader.readAsDataURL(file);
+        event.target.value = '';
+    }
+
+    function addManagerWarning() {
+        const pwd = prompt('Vui lòng nhập mật khẩu quản lý để phát cảnh báo:');
+        if (pwd === null) return;
+        
+        if (pwd === getDailyPassword()) {
+            const plateInput = document.getElementById('carPlate');
+            const customWarning = plateInput.value.trim();
+            
+            const finalWarning = customWarning 
+                ? '⚠️ QUẢN LÝ: ' + customWarning.toUpperCase() 
+                : '⚠️ QUẢN LÝ NHẮC: CHƯA CẬP NHẬT XE!';
+
+            db.collection("washLogs").add({
+                type: 'warning',
+                plate: finalWarning,
+                time: getCurrentTime(),
+                photo: null,
+                emp: '',
+                createdAt: Date.now()
+            });
+            
+            plateInput.value = ''; 
+        } else {
+            alert('Mật khẩu sai!');
+        }
+    }
+
+    function deleteLog(index) {
+        const password = prompt('Vui lòng nhập mật khẩu quản lý để xóa:');
+        if (password === null) return; 
+
+        if (password === getDailyPassword()) {
+            const logId = logs[index].id;
+            db.collection("washLogs").doc(logId).delete();
+        } else {
+            alert('Mật khẩu sai! Không thể xóa bản ghi.');
+        }
+    }
+
+    function resetShift() {
+        if (logs.length === 0) {
+            alert('Bảng hiện tại đang trống, không cần làm mới!');
             return;
         }
-        goToStep(4);
-    }
 
-    // BƯỚC 4 -> BƯỚC 5
-    function goToStep5() {
-        goToStep(5);
-        calculateFinalResult();
-    }
+        const pwd = prompt('Yêu cầu nhập mật khẩu quản lý để Làm Mới (Xóa toàn bộ ca):');
+        if (pwd === null) return;
 
-    // TÍNH TOÁN LOGIC TẠI BƯỚC 5
-    function calculateFinalResult() {
-        const resultCard = document.getElementById('finalResultCard');
-        const alertBox = document.getElementById('logicAlert');
-        resultCard.style.display = 'block';
-
-        // Lấy số lượng chứng từ
-        const soLuongCT = getNum('s2_soLuong');
-        const tempKho = getNum('s2_nhietDo');
-        const tempNhap = getNum('s3_nhietDo');
-
-        // Lấy tầm mức H1-H5 (Kho)
-        const khoH = [getNum('s2_h1'), getNum('s2_h2'), getNum('s2_h3'), getNum('s2_h4'), getNum('s2_h5')];
-        // Lấy tầm mức H1-H5 (Nhập)
-        const nhapH = [getNum('s3_h1'), getNum('s3_h2'), getNum('s3_h3'), getNum('s3_h4'), getNum('s3_h5')];
-
-        // Tính tổng thực nhập từ Bồn (Sau - Trước)
-        const truocB1 = getNum('s4_bon1'), sauB1 = getNum('s5_bon1');
-        const truocB2 = getNum('s4_bon2'), sauB2 = getNum('s5_bon2');
-        const truocB3 = getNum('s4_bon3'), sauB3 = getNum('s5_bon3');
-        const truocBD = getNum('s4_bonDau'), sauBD = getNum('s5_bonDau');
-
-        const thucNhap = (sauB1 - truocB1) + (sauB2 - truocB2) + (sauB3 - truocB3) + (sauBD - truocBD);
-        const chenhLech = thucNhap - soLuongCT;
-
-        document.getElementById('res_chungTu').innerText = soLuongCT.toLocaleString('vi-VN');
-        document.getElementById('res_thucNhap').innerText = thucNhap.toLocaleString('vi-VN');
-        
-        const clText = document.getElementById('res_chenhLech');
-        clText.innerText = (chenhLech > 0 ? '+' : '') + chenhLech.toLocaleString('vi-VN');
-        clText.style.color = chenhLech < 0 ? 'red' : 'green';
-
-        // --- BẮT ĐẦU PHÂN TÍCH LOGIC ĐỦ / THIẾU / NGHI NGỜ ---
-        let status = "ĐỦ";
-        let msg = "";
-
-        // 1. Phân tích Tầm mức
-        let checkH = 0; // 0: Bằng, -1: Hụt, 1: Dâng
-        for(let i=0; i<5; i++) {
-            if(nhapH[i] < khoH[i]) checkH = -1; // Chỉ cần 1 hầm hụt là báo hụt
-            else if(nhapH[i] > khoH[i] && checkH !== -1) checkH = 1;
-        }
-
-        // 2. Xét theo Nhiệt độ & Tầm mức hầm
-        if (tempNhap > tempKho) {
-            // Nhiệt tăng -> Đáng lý phải dâng. Nếu bằng hoặc hụt -> Nghi ngờ
-            if (checkH <= 0) {
-                status = "NGHI NGỜ";
-                msg = `🌡️ Nhiệt tăng (${tempNhap}°C > ${tempKho}°C) nhưng tầm mức hầm hụt/bằng. `;
-            }
-        } else if (tempNhap < tempKho) {
-            // Nhiệt giảm -> Hao hụt vật lý (Thiếu)
-            if (checkH < 0) {
-                status = "THIẾU";
-                msg = `🌡️ Co ngót vật lý do nhiệt độ giảm (${tempNhap}°C < ${tempKho}°C). `;
+        if (pwd === getDailyPassword()) {
+            if (confirm('⚠️ BẠN CÓ CHẮC CHẮN?\nHành động này sẽ xóa vĩnh viễn toàn bộ dữ liệu xe hiện tại để bắt đầu ca mới!')) {
+                logs.forEach(log => {
+                    db.collection("washLogs").doc(log.id).delete();
+                });
+                alert('Đã làm mới ca trực thành công!');
             }
         } else {
-            // Nhiệt bằng -> Phải khớp
-            if (checkH < 0) {
-                status = "NGHI NGỜ";
-                msg = `🌡️ Nhiệt độ ổn định nhưng tầm mức hầm bị hụt. `;
-            }
+            alert('Mật khẩu sai! Không thể làm mới.');
         }
-
-        // 3. Xét theo Lượng thực nhập bồn
-        if (chenhLech < 0) {
-            if (status !== "NGHI NGỜ") status = "THIẾU";
-            msg += `💧 Hao hụt bồn thực tế: ${Math.abs(chenhLech)} Lít.`;
-        }
-
-        // Hiển thị kết quả
-        alertBox.style.display = 'block';
-        if (status === "ĐỦ") {
-            alertBox.style.backgroundColor = '#d4edda';
-            alertBox.style.color = '#155724';
-            alertBox.innerHTML = `✅ KẾT QUẢ: NHẬP ĐỦ HOÀN TOÀN<br><span style="font-weight:normal; font-size:0.8rem">Số liệu khớp với chứng từ và điều kiện vật lý.</span>`;
-        } else if (status === "THIẾU") {
-            alertBox.style.backgroundColor = '#d1ecf1';
-            alertBox.style.color = '#0c5460';
-            alertBox.innerHTML = `ℹ️ KẾT QUẢ: THIẾU (HAO HỤT CHO PHÉP)<br><span style="font-weight:normal; font-size:0.8rem">${msg}</span>`;
-        } else {
-            alertBox.style.backgroundColor = '#f8d7da';
-            alertBox.style.color = '#721c24';
-            alertBox.innerHTML = `🚨 KẾT QUẢ: NGHI NGỜ / BẤT THƯỜNG!<br><span style="font-weight:normal; font-size:0.8rem">${msg} Yêu cầu lập biên bản kiểm tra lại xe bồn.</span>`;
-        }
-    }
-
-    function saveAndReset() {
-        alert("Đã lưu báo cáo thành công! Quy trình kết thúc.");
-        
-        // Reset toàn bộ form
-        const inputs = document.querySelectorAll('input[type="number"], input[type="text"]');
-        inputs.forEach(input => input.value = '');
-        
-        document.getElementById('s4_bon1').value = '0'; document.getElementById('s4_bon2').value = '0';
-        document.getElementById('s4_bon3').value = '0'; document.getElementById('s4_bonDau').value = '0';
-        document.getElementById('s5_bon1').value = '0'; document.getElementById('s5_bon2').value = '0';
-        document.getElementById('s5_bon3').value = '0'; document.getElementById('s5_bonDau').value = '0';
-
-        document.getElementById('finalResultCard').style.display = 'none';
-        
-        goToStep1();
     }
 </script>
 
